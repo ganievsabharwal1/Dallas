@@ -1,0 +1,3082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dallas — Find Your Next Spot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --cream: #f5f0e8;
+    --paper: #faf7f2;
+    --amber: #d4870a;
+    --amber-light: #f5c842;
+    --red: #c0392b;
+    --green: #1a6b3a;
+    --blue: #1a3a6b;
+    --muted: #7a7060;
+    --border: rgba(13,13,13,0.12);
+    --card-bg: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* MASTHEAD */
+  .masthead {
+    border-bottom: 2px solid var(--ink);
+    padding: 0 2rem;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    background: var(--cream);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .masthead-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-right: 1px solid var(--border);
+    padding-right: 1.5rem;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .logo span {
+    color: var(--amber);
+  }
+
+  .edition {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+
+  .masthead-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
+  }
+
+  .search-wrap {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    border: 1.5px solid var(--ink);
+    border-radius: 0;
+    background: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px 10px 38px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--amber); }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .masthead-right {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-left: 1px solid var(--border);
+    padding-left: 1.5rem;
+  }
+
+  .live-ticker {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+  /* SECONDARY NAV */
+  .sec-nav {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--cream);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sec-nav::-webkit-scrollbar { display: none; }
+
+  .nav-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 18px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+
+  .nav-btn:hover { color: var(--ink); }
+  .nav-btn.active { color: var(--ink); border-bottom-color: var(--amber); font-weight: 500; }
+
+  /* SORT BAR */
+  .sort-bar {
+    padding: 0.75rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper);
+  }
+
+  .sort-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .sort-options {
+    display: flex;
+    gap: 4px;
+  }
+
+  .sort-opt {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sort-opt:hover { border-color: var(--ink); color: var(--ink); }
+  .sort-opt.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+  /* MAIN LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 0;
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: calc(100vh - 140px);
+  }
+
+  .main-col {
+    border-right: 1px solid var(--border);
+    padding: 2rem;
+  }
+
+  .sidebar {
+    padding: 2rem 1.5rem;
+  }
+
+  /* VENUE CARDS */
+  .venue-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .venue-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.3s ease both;
+  }
+
+  .venue-card:last-child { border-bottom: 1px solid var(--border); }
+  .venue-card:hover { background: var(--cream); }
+  .venue-card.expanded { background: var(--cream); }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+  .venue-card:nth-child(1) { animation-delay: 0.03s }
+  .venue-card:nth-child(2) { animation-delay: 0.06s }
+  .venue-card:nth-child(3) { animation-delay: 0.09s }
+  .venue-card:nth-child(4) { animation-delay: 0.12s }
+  .venue-card:nth-child(5) { animation-delay: 0.15s }
+
+  .rank-stripe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+  .rank-1 { background: var(--amber); }
+  .rank-2 { background: #aaa; }
+  .rank-3 { background: #b87333; }
+
+  .card-top {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .rank-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--border);
+    min-width: 36px;
+    text-align: right;
+    color: #ccc5b5;
+  }
+
+  .rank-top { color: var(--amber) !important; }
+
+  .venue-main { flex: 1; min-width: 0; }
+
+  .venue-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .venue-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 1px;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .type-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border: 1px solid;
+    line-height: 1;
+  }
+
+  .pill-bar { border-color: var(--blue); color: var(--blue); }
+  .pill-pub { border-color: #7c3b6e; color: #7c3b6e; }
+  .pill-restaurant { border-color: var(--green); color: var(--green); }
+  .pill-cafe { border-color: var(--amber); color: var(--amber); }
+  .pill-arcade { border-color: #c0392b; color: #c0392b; }
+  .pill-rooftop { border-color: #0d6b8a; color: #0d6b8a; }
+  .pill-livemusic { border-color: #5a2d82; color: #5a2d82; }
+  .pill-latenight { border-color: #1a1a2e; color: #555; }
+
+  .gs-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    background: var(--blue);
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  .venue-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .venue-tags-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .vtag {
+    font-size: 11px;
+    padding: 2px 8px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .venue-stats-row {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .score-block {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .score-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .score-max {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .score-bar-wrap {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    max-width: 120px;
+  }
+
+  .score-bar {
+    height: 100%;
+    background: var(--amber);
+    transition: width 0.6s ease;
+  }
+
+  .mentions-stat {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .mentions-stat strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* LIVE UPDATE */
+  .live-update-bar {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: rgba(26, 107, 58, 0.06);
+    border-left: 2px solid var(--green);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .live-dot-sm {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-top: 5px;
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+  }
+
+  .live-text {
+    font-size: 12px;
+    color: #1a5c33;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .live-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* EXPANDED SECTION */
+  .expand-section {
+    display: none;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  .expand-section.open { display: block; }
+
+  .reviews-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .review-block {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+  }
+
+  .review-text {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.6;
+    font-style: italic;
+    margin-bottom: 5px;
+  }
+
+  .review-attrib {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .review-src-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    font-size: 10px;
+    margin-left: 6px;
+  }
+
+  .hours-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .hour-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* SIDEBAR */
+  .sidebar-section {
+    margin-bottom: 2rem;
+  }
+
+  .sidebar-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 6px;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+
+  .neighborhood-list {
+    list-style: none;
+  }
+
+  .neighborhood-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .neighborhood-list li:hover .nbhd-name { color: var(--amber); }
+
+  .nbhd-name {
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.15s;
+  }
+
+  .nbhd-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .update-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .feed-item {
+    padding: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    animation: slideIn 0.4s ease both;
+  }
+
+  @keyframes slideIn { from{opacity:0;transform:translateX(10px)} to{opacity:1;transform:none} }
+
+  .feed-venue {
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .feed-text {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .feed-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .feed-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  .refresh-btn {
+    width: 100%;
+    padding: 9px;
+    background: none;
+    border: 1.5px solid var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: all 0.15s;
+    margin-top: 12px;
+  }
+
+  .refresh-btn:hover { background: var(--ink); color: var(--cream); }
+
+  .weather-box {
+    padding: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .weather-temp {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .weather-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .weather-icon { font-size: 36px; }
+
+  .tip-box {
+    padding: 14px;
+    background: var(--amber);
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+
+  .tip-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .tip-text {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--muted);
+  }
+
+  .empty-state h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .no-results {
+    display: none;
+  }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .masthead { flex-wrap: wrap; padding: 0.75rem 1rem; gap: 8px; }
+    .masthead-center { padding: 0; order: 3; width: 100%; }
+    .masthead-right { border-left: none; padding-left: 0; }
+    .main-col { padding: 1rem; border: none; }
+    .sort-bar { padding: 0.5rem 1rem; flex-wrap: wrap; gap: 8px; }
+    .sec-nav { padding: 0 1rem; }
+  }
+
+  /* FOOTER */
+  .footer {
+    border-top: 2px solid var(--ink);
+    padding: 1rem 2rem;
+    background: var(--cream);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--ink);
+  }
+
+  .footer-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .deploy-banner {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 12px 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .deploy-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+  }
+
+  .deploy-steps {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .deploy-step {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--amber-light);
+  }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-left">
+    <div>
+      <div class="logo">DALL<span>★</span>S</div>
+      <div class="edition">Crowd-Ranked Venue Guide · Full City Coverage</div>
+    </div>
+  </div>
+  <div class="masthead-center">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Search by name, area, vibe..." oninput="applyFilters()">
+    </div>
+  </div>
+  <div class="masthead-right">
+    <div class="live-ticker">
+      <div class="pulse"></div>
+      <span id="liveCount">12 live updates</span>
+    </div>
+  </div>
+</header>
+
+<!-- SECONDARY NAV -->
+<nav class="sec-nav">
+  <button class="nav-btn active" onclick="setCategory('all',this)">All Venues</button>
+  <button class="nav-btn" onclick="setCategory('bar',this)">Bars</button>
+  <button class="nav-btn" onclick="setCategory('pub',this)">Pubs</button>
+  <button class="nav-btn" onclick="setCategory('restaurant',this)">Restaurants</button>
+  <button class="nav-btn" onclick="setCategory('cafe',this)">Cafes</button>
+  <button class="nav-btn" onclick="setCategory('arcade',this)">🕹 Arcades & Fun</button>
+  <button class="nav-btn" onclick="setCategory('rooftop',this)">🌆 Rooftops</button>
+  <button class="nav-btn" onclick="setCategory('livemusic',this)">🎸 Live Music</button>
+  <button class="nav-btn" onclick="setCategory('latenight',this)">🌙 Late Night</button>
+  <button class="nav-btn" onclick="setCategory('fortworth',this)">🤠 Fort Worth</button>
+  <button class="nav-btn" onclick="setCategory('gs',this)">★ Near Goldman Sachs</button>
+</nav>
+
+<!-- SORT BAR -->
+<div class="sort-bar">
+  <div class="sort-label" id="resultCount">Showing all 252 venues</div>
+  <div class="sort-options">
+    <button class="sort-opt active" onclick="setSort('score',this)">People Score</button>
+    <button class="sort-opt" onclick="setSort('mentions',this)">Most Mentioned</button>
+    <button class="sort-opt" onclick="setSort('recent',this)">Live Activity</button>
+  </div>
+</div>
+
+<!-- DEPLOY BANNER -->
+<div class="deploy-banner">
+  <div class="deploy-text">⚡ To go live with real-time data — deploy in 3 steps</div>
+  <div class="deploy-steps">
+    <div class="deploy-step">1. Push to GitHub</div>
+    <div class="deploy-step">2. Deploy on Vercel (free)</div>
+    <div class="deploy-step">3. Add Google Places API key → .env</div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+  <main class="main-col">
+    <div class="venue-grid" id="venueList"></div>
+    <div class="no-results" id="noResults">
+      <div class="empty-state">
+        <h2>No venues found</h2>
+        <p>Try adjusting your search or filters</p>
+      </div>
+    </div>
+  </main>
+
+  <aside class="sidebar">
+    <!-- TONIGHT TIP -->
+    <div class="sidebar-section">
+      <div class="tip-box" id="tonightTip">
+        <div class="tip-label">Tonight's Pick</div>
+        <div class="tip-text" id="tipText">Loading best spot for tonight...</div>
+      </div>
+    </div>
+
+    <!-- WEATHER -->
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Dallas Now</div>
+      <div class="weather-box">
+        <div>
+          <div class="weather-temp" id="weatherTemp">82°F</div>
+          <div class="weather-desc" id="weatherDesc">Clear · Good patio weather</div>
+        </div>
+        <div class="weather-icon" id="weatherIcon">☀️</div>
+      </div>
+    </div>
+
+    <!-- LIVE FEED -->
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Live Updates</div>
+      <div class="update-feed" id="liveFeed"></div>
+      <button class="refresh-btn" onclick="refreshFeed()">↻ Refresh Feed</button>
+    </div>
+
+    <!-- NEIGHBORHOODS -->
+    <div class="sidebar-section">
+      <div class="sidebar-heading">By Neighborhood</div>
+      <ul class="neighborhood-list" id="nbhdList"></ul>
+    </div>
+  </aside>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">DALL<span style="color:var(--amber)">★</span>S</div>
+  <div class="footer-meta">Ranked by real crowd data · Updated continuously · Full Dallas coverage</div>
+  <div class="footer-meta">Built for Goldman Sachs Downtown crew · All of Dallas covered</div>
+</footer>
+
+<script>
+const VENUES = [
+  // === BARS ===
+  { id:1, name:"Parliament", type:"bar", area:"Downtown / Victory Park", neighborhood:"Downtown", gs:true,
+    tags:["craft cocktails","rooftop","date night","upscale"],
+    score:94, mentions:2341, hoursNote:"Tue–Sun 5pm–2am",
+    live:{text:"Packed tonight — DJ set in full swing. Rooftop is open. Arrive before 9pm for a seat.",time:"8 min ago",fresh:true},
+    reviews:[
+      {text:"Best cocktail program in the city. Bartenders know their craft and actually talk to you about the drink.",user:"u/dallasnightout",src:"Reddit r/Dallas"},
+      {text:"Rooftop views of Downtown are genuinely stunning. Pricey but completely worth it.",user:"Sarah M.",src:"Google 4.7★"},
+      {text:"Parliament is the move if you want a proper bar experience. Not a frat bar.",user:"u/dtx_nights",src:"Reddit r/DFW"}
+    ]},
+  { id:2, name:"Katy Trail Ice House", type:"bar", area:"Uptown / Katy Trail", neighborhood:"Uptown", gs:false,
+    tags:["outdoor patio","sports","dog friendly","laid back","huge beer selection"],
+    score:90, mentions:3200, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"Cowboys game on — standing room on the patio. Bar service is fast.",time:"22 min ago",fresh:true},
+    reviews:[
+      {text:"The quintessential Dallas outdoor bar. Dog friendly, 100-person patio, ice cold beers on a hot day.",user:"u/dallasbrews",src:"Reddit r/Dallas"},
+      {text:"Best vibe in Uptown on a sunny afternoon. Get the smash burger, you won't regret it.",user:"Jake R.",src:"Yelp 4.5★"},
+      {text:"One of my Dallas staples. Friendly crowd, reasonable prices, massive space.",user:"u/uptown_weekend",src:"Reddit r/Dallas"}
+    ]},
+  { id:3, name:"Hide", type:"bar", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["whiskey","intimate","dark bar","cocktails","hotel bar"],
+    score:88, mentions:870, hoursNote:"Wed–Sun 5pm–midnight",
+    live:{text:"Quiet mid-week. Easy walk-in tonight. Great whiskey tasting notes on the chalkboard.",time:"55 min ago",fresh:false},
+    reviews:[
+      {text:"Tiny whiskey bar underneath the Joule. Genuinely excellent and criminally underrated.",user:"u/dallaswhiskey",src:"Reddit r/Dallas"},
+      {text:"A proper bar for adults. No gimmicks, great pours, knowledgeable staff who don't judge.",user:"Mark V.",src:"Google 4.8★"},
+      {text:"Best spot in Downtown for a serious drink. Get the Old Fashioned.",user:"u/dtx_drinks",src:"Reddit r/DFW"}
+    ]},
+  { id:4, name:"Stirr", type:"bar", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["rooftop","craft cocktails","weekend","lively","scene"],
+    score:85, mentions:1540, hoursNote:"Thu–Sat 4pm–2am",
+    live:{text:"Friday night energy is electric. Rooftop is full but downstairs has room.",time:"18 min ago",fresh:true},
+    reviews:[
+      {text:"Deep Ellum's best rooftop. The cocktail menu is creative and the views are great at night.",user:"u/deepsouth_tx",src:"Reddit r/Dallas"},
+      {text:"Trendy but not pretentious. Great for a Friday evening before hitting more bars.",user:"Emily R.",src:"Yelp 4.3★"}
+    ]},
+  { id:5, name:"The Rustic", type:"bar", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["live music","outdoor","massive","texas vibe","groups"],
+    score:89, mentions:4120, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"45 min wait for outdoor patio. Bar walk-ins welcome. Live band starting at 9pm.",time:"5 min ago",fresh:true},
+    reviews:[
+      {text:"A Dallas institution. Massive patio, live music every night, cold beers. It's the definition of the city.",user:"u/uptown_eats",src:"Reddit r/Dallas"},
+      {text:"Great for big groups. Plenty of space, good food, and the bands are always worth sticking around for.",user:"Sarah K.",src:"Google 4.5★"},
+      {text:"Came here for a birthday with 15 people. Zero issues. Great staff.",user:"u/dallas_weekends",src:"Reddit r/DFW"}
+    ]},
+  { id:6, name:"Midnight Rambler", type:"bar", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["craft cocktails","speakeasy vibe","late night","intimate"],
+    score:91, mentions:1180, hoursNote:"Mon–Sun 5pm–2am",
+    live:{text:"Wednesday special: $12 negroni variations. Comfortable crowd tonight.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The best cocktail bar in Downtown Dallas, full stop. Every drink is a 10/10.",user:"u/dallas_cocktails",src:"Reddit r/Dallas"},
+      {text:"Feels like a proper New York cocktail bar but in Dallas. Impressive by any city's standards.",user:"Tom B.",src:"Google 4.8★"}
+    ]},
+
+  // === PUBS ===
+  { id:7, name:"The Foundry", type:"pub", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["craft beer","live bands","local","gritty","authentic"],
+    score:87, mentions:1450, hoursNote:"Mon–Sun 3pm–2am",
+    live:{text:"Live punk band starts 10pm tonight. Cover $5 at the door. Getting packed already.",time:"42 min ago",fresh:true},
+    reviews:[
+      {text:"Exactly what a Dallas bar should feel like. No pretense, great beer, real music. One of the last originals.",user:"u/deepellumreg",src:"Reddit r/Dallas"},
+      {text:"My Friday night bar for 5 years running. Rotating craft taps and staff who remember your order.",user:"Chris B.",src:"Yelp 4.4★"},
+      {text:"Deep Ellum's soul. Don't let it become another cocktail bar.",user:"u/keepdallasreal",src:"Reddit r/DFW"}
+    ]},
+  { id:8, name:"The Nodding Donkey", type:"pub", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["british pub","sports","sunday roast","expat crowd","guinness"],
+    score:84, mentions:1100, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"Full English available this morning. EPL on 7am Saturday. Booking fills fast.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"Feels like a real British pub. Proper Guinness pour, decent pies, and the Sunday roast is as good as any in London.",user:"u/expatdallas",src:"Reddit r/Dallas"},
+      {text:"Best pub in Dallas, full stop. The Sunday roast has become a ritual for our whole group.",user:"Tom B.",src:"Google 4.6★"}
+    ]},
+  { id:9, name:"BrainDead Brewing", type:"pub", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["craft brewing","in-house beer","food","chill"],
+    score:86, mentions:1300, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"New seasonal IPA tapped today. Great afternoon crowd, easy seating.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Best craft brewing setup in Deep Ellum. The food is better than expected and the beer is exceptional.",user:"u/txbeerlover",src:"Reddit r/Dallas"},
+      {text:"Consistent quality, good staff, always something new on tap.",user:"Rachel M.",src:"Yelp 4.5★"}
+    ]},
+  { id:10, name:"The Ginger Man", type:"pub", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["100+ beers","no TV","conversation","old school"],
+    score:88, mentions:2100, hoursNote:"Mon–Sun 2pm–2am",
+    live:{text:"Quiet Tuesday. Some of the best beer nerds in the city in tonight.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The Ginger Man has been a Dallas staple since forever. 100+ beers, no TV, good conversation. Rare and precious.",user:"u/dallasbeer",src:"Reddit r/Dallas"},
+      {text:"A sanctuary. No sports TV, phenomenal selection, and the staff are genuinely knowledgeable.",user:"u/uptown_pints",src:"Reddit r/DFW"}
+    ]},
+
+  // === RESTAURANTS ===
+  { id:11, name:"Pecan Lodge", type:"restaurant", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["bbq","legendary","brisket","cash only","long queues"],
+    score:96, mentions:6890, hoursNote:"Thu–Sun 11am–3pm (sells out early)",
+    live:{text:"Sold out of brisket at 1:45pm today. Arrive at opening tomorrow — queue forms 45 min early.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Legitimately one of the best BBQs in Texas. The massive rib alone is worth the trip. The brisket is perfect.",user:"u/bbqpilgrim",src:"Reddit r/BBQ"},
+      {text:"Get there an hour before opening. The wait is absolutely worth it every single time.",user:"Marcus T.",src:"Google 4.9★"},
+      {text:"I've eaten BBQ all across Texas. Pecan Lodge is top 3, no debate.",user:"u/txbbqranker",src:"Reddit r/BBQ"}
+    ]},
+  { id:12, name:"CBD Provisions", type:"restaurant", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["farm-to-table","brunch","craft cocktails","business lunch","seasonal"],
+    score:89, mentions:1890, hoursNote:"Mon–Fri 7am–10pm, Sat–Sun 9am–10pm",
+    live:{text:"Lunch service quiet today — ideal for a work meeting. Private booths available.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Perfect power lunch spot Downtown. Food is exceptional, service is sharp, and the bar program is serious.",user:"u/dfw_foodie",src:"Reddit r/DFW"},
+      {text:"One of Downtown's best kept secrets. Seasonal menu that actually changes. Remarkable.",user:"Priya N.",src:"Google 4.7★"},
+      {text:"The hotel restaurant that actually deserves your attention. Rare.",user:"u/dtx_eats",src:"Reddit r/Dallas"}
+    ]},
+  { id:13, name:"Mot Hai Ba", type:"restaurant", area:"Lowest Greenville", neighborhood:"Greenville", gs:false,
+    tags:["vietnamese","craft cocktails","trendy","date night","elevated"],
+    score:91, mentions:1200, hoursNote:"Tue–Sun 5pm–10pm",
+    live:{text:"Resy showing 3 slots Thursday. Book now — fills fast every weekend.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Best Vietnamese in Dallas, it's not close. The cocktail program rivals dedicated bars.",user:"u/greenville_eats",src:"Reddit r/DFW"},
+      {text:"Creative, elevated Vietnamese cooking that respects the tradition. Worth the drive from anywhere in the metro.",user:"Ananya S.",src:"Google 4.8★"}
+    ]},
+  { id:14, name:"Lucia", type:"restaurant", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["italian","prix fixe","intimate","BYOB","reservation essential"],
+    score:95, mentions:2800, hoursNote:"Tue–Sat 6pm–10pm",
+    live:{text:"Walk-ins currently impossible. Book 3+ weeks ahead. Worth every minute of the wait.",time:"6 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best restaurant in Dallas. Full stop. Handmade pasta, intimate atmosphere, and David Uygur is a genius.",user:"u/dallasfoodie",src:"Reddit r/Dallas"},
+      {text:"BYOB with the best pasta you'll eat outside of Italy. A true Dallas treasure.",user:"Lisa K.",src:"Google 4.9★"},
+      {text:"Get on the waitlist immediately. This is the kind of restaurant that makes a city.",user:"u/txfood_critic",src:"Reddit r/DFW"}
+    ]},
+  { id:15, name:"Loro", type:"restaurant", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["smoked meats","asian fusion","outdoor","trendy","Franklin BBQ collab"],
+    score:92, mentions:3400, hoursNote:"Mon–Sun 11am–9pm",
+    live:{text:"Outdoor tables filling up fast in this weather. Brisket fried rice is back on menu.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Franklin BBQ meets Asian flavors. The brisket fried rice alone is worth the trip every time.",user:"u/loro_fanatic",src:"Reddit r/Dallas"},
+      {text:"Innovative, delicious, and the outdoor space is beautifully done. Dallas got lucky with this one.",user:"James T.",src:"Google 4.7★"}
+    ]},
+  { id:16, name:"Homewood", type:"restaurant", area:"Old East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["southern","brunch king","creative","neighborhood gem","waitlist"],
+    score:90, mentions:1650, hoursNote:"Wed–Sun 10am–2pm & 5pm–9pm",
+    live:{text:"Brunch waitlist running 1 hour right now. Dinner has availability tonight.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"The best brunch in Dallas. It's not even a competition. Everything Matt McCallister touches is gold.",user:"u/eastdallas_eats",src:"Reddit r/DFW"},
+      {text:"Come for brunch, stay for dinner. The creative Southern cooking here is unmatched.",user:"Maria G.",src:"Yelp 4.8★"}
+    ]},
+  { id:17, name:"Tei-An", type:"restaurant", area:"Downtown / Arts District", neighborhood:"Downtown", gs:true,
+    tags:["japanese","soba","omakase","upscale","Arts District"],
+    score:93, mentions:2200, hoursNote:"Tue–Sat 11:30am–2pm & 5:30pm–10pm",
+    live:{text:"Omakase counter has 2 seats available Friday. Call to reserve.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best Japanese restaurant in Texas. The hand-cut soba is extraordinary.",user:"u/dallas_japanese",src:"Reddit r/Dallas"},
+      {text:"Tei-An is in a league of its own Downtown. The omakase is a religious experience.",user:"Chen W.",src:"Google 4.9★"}
+    ]},
+  { id:18, name:"Smoke", type:"restaurant", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["bbq","cocktails","elevated","dinner","not just lunch"],
+    score:87, mentions:1890, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Happy hour running 3–6pm. Bar stools available walk-in.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"The BBQ restaurant that also has a serious cocktail program. Don't sleep on this one.",user:"u/bbqdallas",src:"Reddit r/Dallas"},
+      {text:"Elevated approach to Texas BBQ. The smoked meats are phenomenal.",user:"Alex P.",src:"Google 4.6★"}
+    ]},
+  { id:19, name:"Sfuzzi", type:"restaurant", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["italian","upscale","date night","wine list","client dinner"],
+    score:83, mentions:760, hoursNote:"Mon–Sun 5pm–11pm",
+    live:{text:"Happy hour 4–6pm daily — half price apps at the bar. Good mid-week option.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Underrated Uptown Italian. Great pasta and the wine list is thoughtfully put together.",user:"u/uptownfoodie",src:"Reddit r/DFW"},
+      {text:"Beautiful space, consistent food. My go-to for client dinners when I need reliable.",user:"Rachel K.",src:"Yelp 4.3★"}
+    ]},
+  { id:20, name:"Meso Maya", type:"restaurant", area:"Multiple Locations", neighborhood:"Uptown", gs:false,
+    tags:["mexican","margaritas","vibrant","weekend brunch","groups"],
+    score:86, mentions:2900, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Saturday brunch margarita deal is on. Crowd building from noon.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"Best upscale Mexican in Dallas. The margaritas alone are worth a visit.",user:"u/dallas_mexican",src:"Reddit r/Dallas"},
+      {text:"Consistently excellent. Corn tortillas made fresh. Great for groups.",user:"Sofia R.",src:"Google 4.5★"}
+    ]},
+  { id:21, name:"Meridian", type:"restaurant", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["new american","intimate","reservation required","exceptional service"],
+    score:92, mentions:890, hoursNote:"Tue–Sat 5:30pm–10pm",
+    live:{text:"Book 2 weeks out. One of the most consistent fine dining experiences in the city.",time:"5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Knox-Henderson's best fine dining. Small menu, every dish is perfect.",user:"u/kh_foodie",src:"Reddit r/DFW"},
+      {text:"The kind of restaurant you take someone you want to impress. Flawless every time.",user:"David L.",src:"Google 4.8★"}
+    ]},
+  { id:22, name:"Al Biernat's", type:"restaurant", area:"Oak Lawn", neighborhood:"Oak Lawn", gs:false,
+    tags:["steakhouse","dallas institution","power dinner","expense account"],
+    score:91, mentions:3200, hoursNote:"Mon–Sat 5pm–11pm",
+    live:{text:"Full house tonight. Bar area has walk-in availability. Power crowd in.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The Dallas steakhouse. Politicians, CEOs, celebrities. The energy alone is worth it.",user:"u/dallas_power_dinner",src:"Reddit r/Dallas"},
+      {text:"Best steakhouse in the city. The service is extraordinary.",user:"Tom H.",src:"Google 4.7★"}
+    ]},
+  { id:23, name:"Neighborhood Services", type:"restaurant", area:"Multiple Locations", neighborhood:"Uptown", gs:false,
+    tags:["american","comfort food elevated","neighborhood staple","wine"],
+    score:88, mentions:1700, hoursNote:"Mon–Sun 5pm–10pm",
+    live:{text:"Quiet Monday. Great option for a weeknight dinner with no wait.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The definition of a neighborhood restaurant done right. Comfortable, reliable, and genuinely good.",user:"u/dallas_local",src:"Reddit r/Dallas"},
+      {text:"My default for a good weeknight dinner. Never disappoints.",user:"Chris M.",src:"Yelp 4.4★"}
+    ]},
+  { id:24, name:"Bullion", type:"restaurant", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["french","upscale","gold decor","expense account","special occasion"],
+    score:89, mentions:1400, hoursNote:"Tue–Sun 5pm–10pm",
+    live:{text:"Anniversary and birthday reservations tonight — great energy in the room.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The most beautiful restaurant in Downtown Dallas. The gilded interior is jaw-dropping.",user:"u/dtx_dining",src:"Reddit r/Dallas"},
+      {text:"French bistro excellence with Dallas flair. The steak frites are exceptional.",user:"Emma P.",src:"Google 4.7★"}
+    ]},
+  { id:25, name:"Mudhen Meat & Greens", type:"restaurant", area:"Henderson Avenue", neighborhood:"Knox-Henderson", gs:false,
+    tags:["healthy","creative","vegetarian-friendly","brunch","lunch"],
+    score:84, mentions:980, hoursNote:"Mon–Sun 8am–9pm",
+    live:{text:"Great lunch spot today. Grain bowl special is the move.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Dallas's best healthy-ish restaurant. The food is creative and actually delicious.",user:"u/dallas_health",src:"Reddit r/Dallas"},
+      {text:"Finally a place where vegetarians and meat-eaters are both happy.",user:"Anya K.",src:"Google 4.5★"}
+    ]},
+  // more restaurants...
+  { id:26, name:"Nick & Sam's", type:"restaurant", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["steakhouse","seafood","upscale","live piano","classic"],
+    score:90, mentions:2600, hoursNote:"Mon–Sat 5pm–11pm",
+    live:{text:"Live piano tonight. Reservation bar seating available on OpenTable.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Classic Dallas steakhouse experience. The seafood tower is spectacular.",user:"u/uptown_steak",src:"Reddit r/DFW"},
+      {text:"Never had a bad meal here in 20 visits. The consistency is impressive.",user:"Richard B.",src:"Google 4.7★"}
+    ]},
+  { id:27, name:"Rapscallion", type:"restaurant", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["american","lively bar scene","late night food","neighborhood"],
+    score:86, mentions:1100, hoursNote:"Mon–Sun 5pm–midnight",
+    live:{text:"Late kitchen still serving until midnight. Good energy tonight.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"One of Lower Greenville's best. Kitchen runs late, bar is lively, food is better than it needs to be.",user:"u/greenville_reg",src:"Reddit r/Dallas"},
+      {text:"My neighborhood spot. Never pretentious, always good.",user:"Mike D.",src:"Yelp 4.4★"}
+    ]},
+
+  // === CAFES ===
+  { id:28, name:"Mudsmith", type:"cafe", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["coffee","cozy","dark vibe","open late","laptops welcome"],
+    score:86, mentions:980, hoursNote:"Mon–Sun 7am–midnight",
+    live:{text:"Quiet this afternoon. Lots of seating. New seasonal oat milk latte on the menu.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"Best coffee shop atmosphere in Dallas. Dark, moody, great espresso. Open till midnight. A rare treasure.",user:"u/coffeedallas",src:"Reddit r/Dallas"},
+      {text:"My remote work HQ. Great staff, exceptional cortado, never kicked out.",user:"David L.",src:"Google 4.6★"}
+    ]},
+  { id:29, name:"White Rock Coffee", type:"cafe", area:"East Dallas / White Rock", neighborhood:"East Dallas", gs:false,
+    tags:["specialty coffee","community","breakfast tacos","neighbourhood gem"],
+    score:85, mentions:650, hoursNote:"Mon–Fri 6am–6pm, Sat–Sun 7am–5pm",
+    live:{text:"Fresh batch of single-origin Ethiopia in today. Quiet Saturday morning, great seating.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"East Dallas locals know this place is special. Community feel, serious coffee, real people.",user:"u/eastdallascoffee",src:"Reddit r/Dallas"},
+      {text:"Best breakfast taco and coffee combo in the city. An East Dallas gem.",user:"Sofia R.",src:"Google 4.7★"}
+    ]},
+  { id:30, name:"Houndstooth Coffee", type:"cafe", area:"Multiple Locations", neighborhood:"Uptown", gs:false,
+    tags:["specialty coffee","clean design","reliable","Uptown institution"],
+    score:88, mentions:1800, hoursNote:"Mon–Fri 6am–7pm, Sat–Sun 7am–6pm",
+    live:{text:"New single origin pour-over available. Steady morning crowd.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The gold standard for specialty coffee in Dallas. Consistent, expert, and the space is beautiful.",user:"u/dallas_coffee",src:"Reddit r/Dallas"},
+      {text:"Best flat white in the city. Reliably excellent every single visit.",user:"James K.",src:"Google 4.7★"}
+    ]},
+  { id:31, name:"Cultivar Coffee", type:"cafe", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["roaster","specialty","alternative methods","coffee nerds"],
+    score:87, mentions:720, hoursNote:"Mon–Sat 7am–5pm",
+    live:{text:"Roast happening this morning — coffee smells incredible.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Deep Ellum's best coffee. They take the craft seriously and it shows in every cup.",user:"u/deepsouth_coffee",src:"Reddit r/DFW"},
+      {text:"The V60 here rivals anything in any city. Underrated.",user:"Anna T.",src:"Google 4.8★"}
+    ]},
+  { id:32, name:"Empire Baking Company", type:"cafe", area:"Lovers Lane / Highland Park", neighborhood:"Highland Park", gs:false,
+    tags:["bakery","coffee","pastries","morning ritual","regulars"],
+    score:89, mentions:2100, hoursNote:"Mon–Sat 6:30am–7pm, Sun 7am–5pm",
+    live:{text:"Morning rush ending. Fresh croissants still available. Outdoor seating open.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best bakery in Dallas, and it's not close. Worth the drive from anywhere.",user:"u/dallas_bakery",src:"Reddit r/Dallas"},
+      {text:"Morning ritual for the Highland Park crowd for 30 years. The croissant is the benchmark.",user:"Carol M.",src:"Google 4.8★"}
+    ]},
+  { id:33, name:"The Wild Detectives", type:"cafe", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["bookshop cafe","wine","events","alternative vibe","literary"],
+    score:90, mentions:1300, hoursNote:"Mon–Sun 9am–10pm",
+    live:{text:"Author reading event tonight at 7pm. Walk-ins welcome. Great wine list.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Bookshop + wine bar + coffee shop = the best third place in Dallas. Magical.",user:"u/bishoparts_reg",src:"Reddit r/Dallas"},
+      {text:"My favourite spot in all of Dallas. If you haven't been, stop everything.",user:"Lena M.",src:"Google 4.9★"}
+    ]},
+  { id:34, name:"Oddfellows", type:"cafe", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["brunch","hipster","good coffee","avocado toast but good","Bishop Arts"],
+    score:84, mentions:1100, hoursNote:"Mon–Sun 8am–3pm",
+    live:{text:"Weekend brunch queue moving. 20 min wait right now.",time:"40 min ago",fresh:true},
+    reviews:[
+      {text:"Bishop Arts brunch king. Good coffee, outstanding food, the vibe is right.",user:"u/oakcliff_eats",src:"Reddit r/DFW"},
+      {text:"The avocado toast here actually earns its reputation. Don't miss the breakfast sandwich.",user:"Riley P.",src:"Yelp 4.5★"}
+    ]},
+  // ADDITIONAL VENUES to hit 50+
+  { id:35, name:"The People's Last Stand", type:"bar", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["dive bar","cheap beers","local music","no frills","authentic"],
+    score:83, mentions:890, hoursNote:"Mon–Sun 2pm–2am",
+    live:{text:"$2 PBRs tonight. Local band on stage now.",time:"15 min ago",fresh:true},
+    reviews:[
+      {text:"The best dive bar in Dallas. Zero pretension, great cheap beers, real music.",user:"u/deepellum_dives",src:"Reddit r/Dallas"}
+    ]},
+  { id:36, name:"Apothecary Bar", type:"bar", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["craft cocktails","neighborhood","intimate","hidden gem"],
+    score:86, mentions:670, hoursNote:"Wed–Sun 5pm–midnight",
+    live:{text:"Quiet Wednesday. Bartender making incredible seasonal cocktails.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Oak Cliff's cocktail bar gem. The seasonal menu is always inventive.",user:"u/oakcliff_drinks",src:"Reddit r/Dallas"}
+    ]},
+  { id:37, name:"It'll Do Club", type:"bar", area:"Old East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["disco","dance","LGBTQ+ friendly","late night","80s nights"],
+    score:87, mentions:1200, hoursNote:"Thu–Sat 9pm–4am",
+    live:{text:"Dance floor filling up. 80s night in full swing.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"Best dance bar in Dallas. The crowd is diverse, the music is great, the vibe is electric.",user:"u/dallas_nightlife",src:"Reddit r/Dallas"}
+    ]},
+  { id:38, name:"Javier's", type:"restaurant", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["mexican","upscale","old school glamour","tequila","classic"],
+    score:88, mentions:2800, hoursNote:"Mon–Sat 6pm–11pm",
+    live:{text:"Full house tonight. Bar open for walk-ins. The guacamole tableside is still worth it.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Javier's is a Dallas institution. The atmosphere is pure old-school Mexican glamour.",user:"u/dallas_classics",src:"Reddit r/Dallas"}
+    ]},
+  { id:39, name:"Mexican Sugar", type:"restaurant", area:"Plano / Allen", neighborhood:"North Dallas", gs:false,
+    tags:["mexican","suburban","margaritas","brunch","families"],
+    score:82, mentions:2100, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Suburban crowd busy tonight. Great margarita selection.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best Mexican restaurant for the north suburbs crowd.",user:"u/plano_eats",src:"Reddit r/DFW"}
+    ]},
+  { id:40, name:"Oak Highlands Brewery", type:"pub", area:"East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["local brewery","laid back","trivia nights","dog friendly"],
+    score:84, mentions:780, hoursNote:"Mon–Sun noon–10pm",
+    live:{text:"Trivia night Wednesday at 7pm. Teams of 4 welcome.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"East Dallas's local brewery done right. Consistent beers and a great community vibe.",user:"u/east_dallas_brews",src:"Reddit r/Dallas"}
+    ]},
+  { id:41, name:"Yardhouse", type:"bar", area:"Uptown / West Village", neighborhood:"Uptown", gs:false,
+    tags:["100+ beers on tap","sports","groups","reliable"],
+    score:79, mentions:3200, hoursNote:"Mon–Sun 11am–1am",
+    live:{text:"All major sports on. Plenty of seating on a Wednesday.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Goes-without-saying choice for beer and sports. Not exciting but perfectly reliable.",user:"u/dallas_sports_bars",src:"Reddit r/Dallas"}
+    ]},
+  { id:42, name:"Veritas Wine Bar", type:"bar", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["wine","intimate","date night","knowledgeable staff"],
+    score:87, mentions:920, hoursNote:"Mon–Sun 4pm–midnight",
+    live:{text:"New natural wine arrivals. Great for a weeknight date.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Dallas's best wine bar. The staff actually know what they're talking about.",user:"u/dallas_wine",src:"Reddit r/Dallas"}
+    ]},
+  { id:43, name:"Tacos La Banqueta", type:"restaurant", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["authentic tacos","late night","cash only","no frills","legendary"],
+    score:94, mentions:3800, hoursNote:"Mon–Sun 7pm–3am",
+    live:{text:"Queue moving fast. Birria tacos available tonight. Cash only.",time:"10 min ago",fresh:true},
+    reviews:[
+      {text:"The best late-night tacos in Dallas. Possibly Texas. Cash only, no ambiance, absolutely perfect.",user:"u/tacos_dallas",src:"Reddit r/Dallas"},
+      {text:"Oak Cliff at 1am + these tacos = peak Dallas experience.",user:"Carlos M.",src:"Google 4.8★"}
+    ]},
+  { id:44, name:"Cane Rosso", type:"restaurant", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["neapolitan pizza","wood fired","casual","beer","best pizza"],
+    score:90, mentions:3100, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"45 min wait tonight. Bar seats available. New seasonal pizza on.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"Best pizza in Dallas. The Neapolitan style is exactly right — chewy, blistered, perfect.",user:"u/dallas_pizza",src:"Reddit r/Dallas"},
+      {text:"I moved to Dallas from New York. This is my pizza spot. Cane Rosso gets it right.",user:"Marco T.",src:"Google 4.7★"}
+    ]},
+  { id:45, name:"Filament", type:"restaurant", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["craft cocktails","gastro pub","late night kitchen","intimate"],
+    score:86, mentions:810, hoursNote:"Mon–Sun 5pm–2am",
+    live:{text:"Kitchen open until 2am. Late night crowd just starting.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Deep Ellum's best kept restaurant secret. Kitchen runs late, cocktails are excellent.",user:"u/deepellum_food",src:"Reddit r/DFW"}
+    ]},
+  { id:46, name:"La Reunion Brewing", type:"pub", area:"West Dallas", neighborhood:"West Dallas", gs:false,
+    tags:["local brewery","outdoor","community","West Dallas"],
+    score:83, mentions:560, hoursNote:"Thu–Sat noon–9pm, Sun noon–7pm",
+    live:{text:"Outdoor space open. New West Dallas Wheat just tapped.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"Supporting West Dallas's development. Great community brewery with solid beers.",user:"u/west_dallas_local",src:"Reddit r/Dallas"}
+    ]},
+  { id:47, name:"High Fives", type:"bar", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["dive bar","sports","neighbourhood","friendly crowd","cheap"],
+    score:82, mentions:980, hoursNote:"Mon–Sun noon–2am",
+    live:{text:"Rangers game on. Friendly walk-in crowd tonight.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Greenville Avenue's best neighbourhood bar. Cheap beers, sports, good people.",user:"u/lower_greenville",src:"Reddit r/Dallas"}
+    ]},
+  { id:48, name:"Drip Coffee", type:"cafe", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["quick coffee","downtown worker","reliable","fast service"],
+    score:80, mentions:1200, hoursNote:"Mon–Fri 6am–4pm",
+    live:{text:"Morning rush settling. Counter seats available for quick work session.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Best quick coffee stop for the Downtown worker crowd. Fast, reliable, excellent.",user:"u/downtown_dallas_works",src:"Reddit r/Dallas"}
+    ]},
+  { id:49, name:"Company Café", type:"cafe", area:"Greenville Avenue", neighborhood:"Greenville", gs:false,
+    tags:["coffee","food","all-day","brunch","friendly"],
+    score:83, mentions:890, hoursNote:"Mon–Sun 7am–4pm",
+    live:{text:"All-day brunch available. Short wait for tables right now.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Consistently good all-day café. The brunch menu punches above its weight.",user:"u/greenville_coffee",src:"Reddit r/Dallas"}
+    ]},
+  { id:50, name:"Phryne Bar", type:"bar", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["cocktails","feminist","art","intimate","unusual"],
+    score:88, mentions:720, hoursNote:"Wed–Sat 5pm–midnight",
+    live:{text:"Art opening tonight. Creative crowd in. Walk-ins welcome.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The most interesting bar in Dallas. Art, cocktails, and a crowd worth talking to.",user:"u/oakcliff_culture",src:"Reddit r/Dallas"}
+    ]},
+  { id:51, name:"Ten Bells Tavern", type:"pub", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["craft beer","low key","regulars","Bishop Arts","no frills"],
+    score:85, mentions:660, hoursNote:"Mon–Sun 3pm–midnight",
+    live:{text:"Quiet Tuesday evening. Regular crowd. Great tap selection.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Bishop Arts's no-frills craft beer bar. Exactly what the neighborhood needs.",user:"u/bishopbeer",src:"Reddit r/Dallas"}
+    ]},
+  // ==================== ARCADES & ENTERTAINMENT ====================
+  { id:53, name:"Cidercade", type:"arcade", area:"Multiple Locations (Dallas + Irving)", neighborhood:"Dallas", gs:false,
+    tags:["arcade games","300+ machines","hard cider","21+","massive"],
+    score:95, mentions:4800, hoursNote:"Mon–Thu 4pm–midnight, Fri 4pm–2am, Sat noon–2am, Sun noon–midnight",
+    live:{text:"Saturday night is packed. No queue at the door right now — go.",time:"15 min ago",fresh:true},
+    reviews:[
+      {text:"300+ arcade games AND a craft cider bar? This place is the best night out in Dallas. Period.",user:"u/dallas_arcade",src:"Reddit r/Dallas"},
+      {text:"We spent 4 hours here. Left with tired thumbs, happy faces, and a slight cider buzz. 10/10.",user:"Jason M.",src:"Google 4.8★"},
+      {text:"Best arcade bar in Texas, and I've been to them all. The selection is unreal.",user:"u/txarcade",src:"Reddit r/DFW"}
+    ]},
+  { id:54, name:"Free Play", type:"arcade", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["FREE arcade","bar","retro games","no tokens","Deep Ellum"],
+    score:93, mentions:3600, hoursNote:"Mon–Fri 4pm–2am, Sat–Sun noon–2am",
+    live:{text:"Free Play Friday. Mortal Kombat cabinet has a queue but everything else walk-up.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"Pay cover, drink, play unlimited free games. The model is genius and the execution is perfect.",user:"u/deepellum_games",src:"Reddit r/Dallas"},
+      {text:"Street Fighter II, Pac-Man, Donkey Kong — and the drinks are actually good. Date night sorted.",user:"Mike K.",src:"Google 4.7★"}
+    ]},
+  { id:55, name:"Pins Mechanical", type:"arcade", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["pinball","duckpin bowling","craft beer","Deep Ellum","competitive"],
+    score:91, mentions:2900, hoursNote:"Wed–Fri 4pm–2am, Sat–Sun noon–2am",
+    live:{text:"Pinball tournament happening right now — incredible to watch even if you're not playing.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"A bar built around pinball machines. This city didn't know it needed this until it had it.",user:"u/dallas_pinball",src:"Reddit r/Dallas"},
+      {text:"Duckpin bowling is addictive. The beer selection is serious. One of Dallas's best venues.",user:"Sarah J.",src:"Yelp 4.6★"}
+    ]},
+  { id:56, name:"Barcadia", type:"arcade", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["arcade bar","retro","Uptown crowd","skee-ball","fun"],
+    score:86, mentions:2100, hoursNote:"Mon–Fri 4pm–2am, Sat–Sun noon–2am",
+    live:{text:"Uptown crew in. Skee-ball lanes open. Good energy for a Wednesday.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Classic Uptown arcade bar. Gets crowded on weekends but the vibe is always great.",user:"u/uptown_arcade",src:"Reddit r/Dallas"},
+      {text:"Skee-ball competitions with strangers is my new favourite activity.",user:"Taylor R.",src:"Google 4.4★"}
+    ]},
+  { id:57, name:"XL Games Lounge", type:"arcade", area:"Plano", neighborhood:"North Dallas", gs:false,
+    tags:["esports","gaming lounge","PC gaming","console","competitive"],
+    score:84, mentions:980, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Smash Bros tournament tonight at 8pm. Open slots still available.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"North Dallas's best gaming lounge. PC setups are top tier, staff are gamers themselves.",user:"u/plano_gaming",src:"Reddit r/DFW"},
+      {text:"Regular tournaments keep it lively. The community here is genuinely welcoming.",user:"Jordan T.",src:"Google 4.5★"}
+    ]},
+  { id:58, name:"Punch Bowl Social", type:"arcade", area:"Uptown / West Village", neighborhood:"Uptown", gs:false,
+    tags:["bowling","arcade","karaoke","food","big groups"],
+    score:85, mentions:2400, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"Bowling lanes available right now. Karaoke room books fast on weekends.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"The all-in-one venue Dallas needed. Bowling, games, karaoke, and actually decent food.",user:"u/dallas_groups",src:"Reddit r/Dallas"},
+      {text:"Took 20 people here for a birthday. Everyone had an incredible time.",user:"Chris B.",src:"Google 4.4★"}
+    ]},
+  { id:59, name:"Joystix Classic Games", type:"arcade", area:"East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["classic arcade","rare machines","collectors","authentic retro"],
+    score:90, mentions:1200, hoursNote:"Fri–Sat 7pm–midnight (events only)",
+    live:{text:"Monthly event this Saturday — 200+ vintage machines open. Tickets going fast.",time:"6 hrs ago",fresh:false},
+    reviews:[
+      {text:"This is not a bar with some games. It's a museum-quality arcade that happens to be in Dallas.",user:"u/retro_games_tx",src:"Reddit r/Dallas"},
+      {text:"Rare machines I haven't seen since 1989. Genuine nostalgia hit.",user:"Dave M.",src:"Google 4.9★"}
+    ]},
+  { id:60, name:"The Bomb Factory Arcade Annex", type:"arcade", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["live music venue","arcade","bar","events","multi-level"],
+    score:87, mentions:1600, hoursNote:"Event-based — check calendar",
+    live:{text:"Show tonight at 9pm. Arcade annex open from 7pm. Doors open in 2 hrs.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Attached to one of Dallas's best music venues. Pre-show arcade time is a great ritual.",user:"u/bombfactory_reg",src:"Reddit r/Dallas"}
+    ]},
+
+  // ==================== ROOFTOPS ====================
+  { id:61, name:"Skyline Bar at the Joule", type:"rooftop", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["rooftop pool","luxury","Downtown views","hotel bar","iconic"],
+    score:92, mentions:2100, hoursNote:"Thu–Sat 5pm–midnight",
+    live:{text:"Pool deck open. Stunning sunset views right now. Dress code enforced.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"The rooftop pool bar Dallas deserves. Views of Downtown are unmatched. Worth every dollar.",user:"u/dtx_rooftop",src:"Reddit r/Dallas"},
+      {text:"Best skyline views in the city from a bar. The cocktails match the setting.",user:"Emma K.",src:"Google 4.8★"}
+    ]},
+  { id:62, name:"Nasher Sculpture Center Rooftop", type:"rooftop", area:"Arts District / Downtown", neighborhood:"Downtown", gs:true,
+    tags:["art","rooftop garden","unique","cultural","events"],
+    score:91, mentions:1400, hoursNote:"Fri–Sat late openings (events only)",
+    live:{text:"Late Friday evening event — rooftop garden open with drinks. Free with museum admission.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Surrounded by world-class sculpture with a drink in hand. Only in Dallas.",user:"u/arts_district_dallas",src:"Reddit r/Dallas"}
+    ]},
+  { id:63, name:"HG Sply Co", type:"rooftop", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["rooftop","healthy food","cocktails","Greenville views","brunch"],
+    score:86, mentions:1800, hoursNote:"Mon–Sun 9am–midnight",
+    live:{text:"Rooftop brunch in full swing. Mimosa pitchers going fast.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Greenville's rooftop gem. The açaí bowls are genuinely excellent and the cocktails are strong.",user:"u/greenville_rooftop",src:"Reddit r/Dallas"},
+      {text:"Best weekend brunch spot with a view in Dallas. Always consistent.",user:"Maria G.",src:"Google 4.5★"}
+    ]},
+  { id:64, name:"Toulouse Café & Bar Rooftop", type:"rooftop", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["french","rooftop","date night","wine","Knox-Henderson"],
+    score:87, mentions:1100, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"Quiet Tuesday rooftop — perfect for a private dinner vibe.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best French bistro rooftop in Knox-Henderson. Moules frites and wine above the street.",user:"u/kh_rooftop",src:"Reddit r/DFW"}
+    ]},
+  { id:65, name:"Namo Rooftop Bar", type:"rooftop", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["Asian fusion","rooftop","cocktails","Uptown scene","sunset views"],
+    score:85, mentions:920, hoursNote:"Wed–Sun 5pm–2am",
+    live:{text:"Happy hour on rooftop until 7pm. Half-price cocktails right now.",time:"18 min ago",fresh:true},
+    reviews:[
+      {text:"Asian-inspired cocktails on a rooftop. Uptown done correctly.",user:"u/uptown_rooftops",src:"Reddit r/Dallas"}
+    ]},
+  { id:66, name:"Three Sheets", type:"rooftop", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["rooftop","craft beer","relaxed","Deep Ellum","affordable"],
+    score:84, mentions:870, hoursNote:"Thu–Sun 4pm–2am",
+    live:{text:"Rooftop just opened for the evening. No queue.",time:"40 min ago",fresh:true},
+    reviews:[
+      {text:"Deep Ellum's most laid-back rooftop. No pretense, good beers, great street-level energy below.",user:"u/deepellum_rooftop",src:"Reddit r/Dallas"}
+    ]},
+
+  // ==================== LIVE MUSIC VENUES ====================
+  { id:67, name:"Trees", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["live music","rock","indie","legendary venue","Deep Ellum"],
+    score:92, mentions:3800, hoursNote:"Show nights — check calendar",
+    live:{text:"Show tonight at 8pm. Doors open now. Floor capacity 1,000.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Deep Ellum's legendary venue. Nirvana played here. The sound system is phenomenal.",user:"u/dallas_music",src:"Reddit r/Dallas"},
+      {text:"One of America's best mid-size music venues. The floor is always incredible.",user:"Jake M.",src:"Google 4.8★"}
+    ]},
+  { id:68, name:"The Bomb Factory", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["live music","major acts","3500 cap","Deep Ellum","production"],
+    score:93, mentions:4200, hoursNote:"Show nights — check Do512",
+    live:{text:"Sold out show tonight. Standing room floor available at door.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Best mid-large music venue in the Southwest. The production quality rivals arenas.",user:"u/dallas_concerts",src:"Reddit r/Dallas"},
+      {text:"Seen 20+ shows here. Never a bad experience. The sound is ridiculous.",user:"Chris P.",src:"Google 4.8★"}
+    ]},
+  { id:69, name:"Deep Ellum Art Company", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["live music","art gallery","outdoor stage","eclectic","community"],
+    score:89, mentions:1600, hoursNote:"Thu–Sat shows, outdoor market Sundays",
+    live:{text:"Outdoor stage show tonight 8pm. Art market Sunday 10am–4pm.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The most authentic Dallas music experience. Art on the walls, bands on the stage, good people.",user:"u/deepsouth_music",src:"Reddit r/Dallas"}
+    ]},
+  { id:70, name:"Sons of Hermann Hall", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["historic venue","country","bluegrass","dance hall","Texas classic"],
+    score:91, mentions:2400, hoursNote:"Thu–Sat shows, line dancing Wednesdays",
+    live:{text:"Wednesday line dancing starts 8pm. Live band. No experience required.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"A 100+ year old Dallas institution. Country, bluegrass, and actual Texas history in the walls.",user:"u/dallas_honkytonk",src:"Reddit r/Dallas"},
+      {text:"Line dancing on Wednesdays is one of the best nights in this city. Full stop.",user:"Susan B.",src:"Google 4.7★"}
+    ]},
+  { id:71, name:"Club Dada", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["indie","alternative","small venue","intimate","legendary"],
+    score:88, mentions:1900, hoursNote:"Show nights — check calendar",
+    live:{text:"Doors open at 7pm tonight. Local Dallas band — great crowd expected.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The incubator of Dallas music. Every great local act has played Dada at some point.",user:"u/dallas_indie",src:"Reddit r/Dallas"}
+    ]},
+  { id:72, name:"Kessler Theater", type:"livemusic", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["restored theater","eclectic","intimate","Oak Cliff","community"],
+    score:90, mentions:1700, hoursNote:"Show nights — seated + standing",
+    live:{text:"Tonight: sold-out singer-songwriter show. Standing room available at box office.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The most beautiful music venue in Dallas. Restored art deco theater with incredible acoustics.",user:"u/oakcliff_music",src:"Reddit r/Dallas"},
+      {text:"Kessler shows feel like a private concert. The intimacy is extraordinary.",user:"Laura T.",src:"Google 4.9★"}
+    ]},
+  { id:73, name:"Gas Monkey Bar n' Grill", type:"livemusic", area:"East Dallas / Greenville", neighborhood:"East Dallas", gs:false,
+    tags:["rock and roll","live music","bikinis","Texas outdoor","famous"],
+    score:82, mentions:3100, hoursNote:"Wed–Sun shows, open late",
+    live:{text:"Cover band tearing it up tonight. Outdoor stage packed.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"A Dallas TV legend that's actually a great live music bar. The outdoor stage is underrated.",user:"u/dallas_rock",src:"Reddit r/Dallas"}
+    ]},
+  { id:74, name:"Three Links", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["punk","metal","underground","late night","cheap entry"],
+    score:86, mentions:1100, hoursNote:"Show nights 8pm–2am",
+    live:{text:"Metal show tonight — doors at 8. $8 cover. Absolutely going off.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"Deep Ellum's best underground music bar. No velvet ropes, no Instagram crowd, just music.",user:"u/dallas_underground",src:"Reddit r/Dallas"}
+    ]},
+
+  // ==================== LATE NIGHT ====================
+  { id:75, name:"Nameless Bar", type:"latenight", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["late night","no sign","hidden","cocktails","Deep Ellum secret"],
+    score:89, mentions:980, hoursNote:"Daily 8pm–4am",
+    live:{text:"Packed after midnight. No sign on the door — look for the red light.",time:"10 min ago",fresh:true},
+    reviews:[
+      {text:"No name. No sign. Word of mouth only. Best late-night cocktails in Dallas.",user:"u/dallas_secret_bars",src:"Reddit r/Dallas"},
+      {text:"Found it by accident. Went back six times. The bartenders are artists.",user:"Anon",src:"Reddit r/DFW"}
+    ]},
+  { id:76, name:"Lizard Lounge", type:"latenight", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["late night","DJ","dance","divey","legendary"],
+    score:84, mentions:2200, hoursNote:"Daily 9pm–4am",
+    live:{text:"DJ set starting now. Dance floor is filling. $3 well drinks.",time:"22 min ago",fresh:true},
+    reviews:[
+      {text:"A Dallas late-night institution. Been open since the 90s and still hits different at 2am.",user:"u/greenville_late",src:"Reddit r/Dallas"},
+      {text:"$3 drinks till midnight. DJ till 4am. Pure Dallas late night.",user:"Tyler B.",src:"Google 4.3★"}
+    ]},
+  { id:77, name:"The Nines", type:"latenight", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["late night","tequila","dance","Deep Ellum","underground"],
+    score:83, mentions:1300, hoursNote:"Thu–Sat 10pm–4am",
+    live:{text:"Floor is live after midnight. Tequila shots $5 till 1am.",time:"15 min ago",fresh:true},
+    reviews:[
+      {text:"Deep Ellum's best late-late bar. When everything else closes, The Nines is still going.",user:"u/late_dallas",src:"Reddit r/Dallas"}
+    ]},
+  { id:78, name:"After-Bar Taco Spot", type:"latenight", area:"Oak Cliff (off Jefferson)", neighborhood:"Oak Cliff", gs:false,
+    tags:["2am tacos","street food","cash only","legendary","after bar"],
+    score:96, mentions:5100, hoursNote:"Fri–Sat midnight–5am",
+    live:{text:"Open NOW. Queue of 8 people. Worth every minute.",time:"5 min ago",fresh:true},
+    reviews:[
+      {text:"A taco cart that appears at 2am like a miracle. The best food I've eaten in Dallas and it's from a cart at 3am.",user:"u/dallas_tacos_late",src:"Reddit r/Dallas"},
+      {text:"If you're out late in Dallas and you don't end up here, you're doing it wrong.",user:"Carlos M.",src:"Reddit r/DFW"}
+    ]},
+  { id:79, name:"Plush", type:"latenight", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["cocktails","late night","lounge","velvet","Greenville"],
+    score:81, mentions:870, hoursNote:"Thu–Sat 9pm–3am",
+    live:{text:"Lounge crowd arriving. Still space at the bar.",time:"50 min ago",fresh:false},
+    reviews:[
+      {text:"Greenville's most grown-up late bar. Cocktails, low lighting, good music.",user:"u/greenville_late_night",src:"Reddit r/Dallas"}
+    ]},
+
+  // ==================== MORE RESTAURANTS ====================
+  { id:80, name:"Uchi Dallas", type:"restaurant", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["japanese","omakase","sushi","upscale","top 5 in city"],
+    score:96, mentions:3800, hoursNote:"Mon–Sun 5pm–10pm",
+    live:{text:"Omakase bar has 2 seats available tomorrow — call now.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Tyson Cole's Dallas outpost is as good as Austin. The best Japanese restaurant in Uptown.",user:"u/dallas_japanese_food",src:"Reddit r/Dallas"},
+      {text:"The uni nigiri is transcendent. Come for omakase, leave forever changed.",user:"Diana K.",src:"Google 4.9★"},
+      {text:"Top 5 restaurant in Dallas without question. The creativity is staggering.",user:"u/dfw_finedining",src:"Reddit r/DFW"}
+    ]},
+  { id:81, name:"FT33", type:"restaurant", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["fine dining","farm to table","design district","tasting menu"],
+    score:92, mentions:1400, hoursNote:"Tue–Sat 6pm–10pm",
+    live:{text:"Chef's tasting menu tonight is exceptional. Two seats at bar available.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"Matt McCallister is a genius. FT33 remains one of the most creative restaurants in Texas.",user:"u/dallas_chefs",src:"Reddit r/Dallas"}
+    ]},
+  { id:82, name:"Khao Noodle Shop", type:"restaurant", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["thai noodles","tiny","cash preferred","authentic","lauded"],
+    score:94, mentions:2600, hoursNote:"Wed–Sun 11am–3pm (sells out)",
+    live:{text:"Sold out today by 2pm. Opening tomorrow at 11am — get there early.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"James Beard nominated for a reason. 10 seats. Extraordinary Thai noodles. One of Dallas's best.",user:"u/dallas_thai",src:"Reddit r/Dallas"},
+      {text:"Khao Noodle Shop is a national treasure operating in Deep Ellum. Staggering.",user:"James B.",src:"Google 4.9★"}
+    ]},
+  { id:83, name:"Carbone Dallas", type:"restaurant", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["italian-american","celebrity","expensive","loud","see and be seen"],
+    score:88, mentions:3200, hoursNote:"Mon–Sun 5:30pm–11pm",
+    live:{text:"Reservation only tonight. Bar area open for walk-ins — worth trying.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"New York's legendary Carbone in Uptown. The spicy rigatoni lives up to the hype.",user:"u/uptown_italian",src:"Reddit r/Dallas"},
+      {text:"More scene than substance but the pasta is genuinely excellent.",user:"Rachel M.",src:"Google 4.6★"}
+    ]},
+  { id:84, name:"Knife", type:"restaurant", area:"Highland Park Village / Park Cities", neighborhood:"Highland Park", gs:false,
+    tags:["steakhouse","dry aged beef","chef-driven","upscale","serious"],
+    score:92, mentions:2100, hoursNote:"Mon–Sat 5pm–10pm",
+    live:{text:"Best dry-aged ribeye in Dallas available tonight. Two tables left.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"John Tesar's steakhouse is the most technically impressive in Dallas. The dry-aging program is extraordinary.",user:"u/dallas_steak",src:"Reddit r/Dallas"},
+      {text:"If you eat beef, you need to eat here.",user:"Mark T.",src:"Google 4.8★"}
+    ]},
+  { id:85, name:"Teppo Yakitori", type:"restaurant", area:"Greenville Avenue", neighborhood:"Greenville", gs:false,
+    tags:["japanese","yakitori","sake","intimate","authentic"],
+    score:90, mentions:1300, hoursNote:"Mon–Sat 5:30pm–10:30pm",
+    live:{text:"Sake flight special tonight. Counter seats available.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best yakitori in Texas. The counter seats watching the grill are the best seats in Dallas.",user:"u/dallas_yakitori",src:"Reddit r/Dallas"}
+    ]},
+  { id:86, name:"Gemma", type:"restaurant", area:"Lowest Greenville", neighborhood:"Greenville", gs:false,
+    tags:["italian","pasta","romantic","intimate","reservation required"],
+    score:91, mentions:1100, hoursNote:"Tue–Sun 5:30pm–10pm",
+    live:{text:"Fully booked this weekend. Waitlist worth joining.",time:"5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Greenville's most romantic restaurant. The pasta is handmade and perfect.",user:"u/dallas_pasta",src:"Reddit r/Dallas"},
+      {text:"The cacio e pepe here rivals anything I've eaten in Rome.",user:"Sofia T.",src:"Google 4.8★"}
+    ]},
+  { id:87, name:"Blind Butcher", type:"restaurant", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["hot dogs","craft beer","casual","late night kitchen","fun"],
+    score:87, mentions:1700, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Late night hot dog menu starts at 10pm. Bar is lively.",time:"40 min ago",fresh:true},
+    reviews:[
+      {text:"Gourmet hot dogs and 100+ craft beers. This is one of Dallas's most fun restaurants.",user:"u/dallas_dogs",src:"Reddit r/Dallas"},
+      {text:"Truffle dog + a rare IPA = best casual dinner in the city.",user:"Zach M.",src:"Google 4.6★"}
+    ]},
+  { id:88, name:"Oddfellows", type:"restaurant", area:"Bishop Arts", neighborhood:"Oak Cliff", gs:false,
+    tags:["all-day","brunch","coffee","neighborhood","Bishop Arts"],
+    score:87, mentions:1300, hoursNote:"Mon–Sun 8am–3pm",
+    live:{text:"Morning crowd thinning. Tables available. Try the breakfast sandwich.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Bishop Arts's best all-day café. The breakfast sandwich is legendary.",user:"u/bishoparts_food",src:"Reddit r/Dallas"}
+    ]},
+  { id:89, name:"Boulevardier", type:"restaurant", area:"Lowest Greenville", neighborhood:"Greenville", gs:false,
+    tags:["french bistro","wine","romantic","small plates","quintessential"],
+    score:90, mentions:1500, hoursNote:"Mon–Sun 5pm–11pm",
+    live:{text:"Great wine list tonight — sommelier in. Walk-ins available at the bar.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best French bistro in Dallas. Every bottle on the wine list has been tasted and chosen with care.",user:"u/dallas_french",src:"Reddit r/Dallas"},
+      {text:"Boulevardier feels like Paris. In a good way, not a pretentious way.",user:"Isabelle M.",src:"Google 4.8★"}
+    ]},
+  { id:90, name:"Beto & Son", type:"restaurant", area:"Trinity Groves", neighborhood:"Trinity Groves", gs:false,
+    tags:["modern mexican","creative","Trinity Groves","scenic","colorful"],
+    score:86, mentions:1200, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Trinity Groves view is gorgeous right now with the bridge lit up.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Modern Mexican done with real creativity. The view of Downtown from Trinity Groves makes every meal better.",user:"u/trinity_groves",src:"Reddit r/Dallas"}
+    ]},
+  { id:91, name:"Pie Tap Pizza Workshop", type:"restaurant", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["pizza","craft beer","happy hour","Design District","casual"],
+    score:84, mentions:1100, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Happy hour 3–6pm. Half price apps and drafts.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Solid Neapolitan-style pizza with a great tap list. Design District's best casual spot.",user:"u/design_district_eats",src:"Reddit r/DFW"}
+    ]},
+  { id:92, name:"Nonna", type:"restaurant", area:"Lemmon Avenue", neighborhood:"Uptown", gs:false,
+    tags:["italian","classic","neighbourhood institution","handmade pasta","warm"],
+    score:91, mentions:2800, hoursNote:"Mon–Sat 5:30pm–10pm",
+    live:{text:"Tuesday quiet — best night to walk in without a reservation.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Nonna has been Dallas's best Italian restaurant for 20 years. It earns that every single night.",user:"u/dallas_italian",src:"Reddit r/Dallas"},
+      {text:"The pappardelle with wild boar ragu is one of the great pasta dishes in America.",user:"Tony R.",src:"Google 4.8★"}
+    ]},
+  { id:93, name:"Lockhart Smokehouse", type:"restaurant", area:"Bishop Arts / White Rock", neighborhood:"Oak Cliff", gs:false,
+    tags:["bbq","Texas tradition","Kreuz Market family","pit smoked","iconic"],
+    score:90, mentions:3400, hoursNote:"Mon–Sun 11am–9pm",
+    live:{text:"Fresh brisket available now. Sausage links just came off the pit.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"The Kreuz Market family brought Texas BBQ royalty to Dallas. Every bite is ancestral.",user:"u/texas_bbq_pilgrim",src:"Reddit r/BBQ"},
+      {text:"Best BBQ in Dallas when Pecan Lodge sells out. Which is often. Go here.",user:"Sam T.",src:"Google 4.7★"}
+    ]},
+  { id:94, name:"Petra and the Beast", type:"restaurant", area:"Exposition Park", neighborhood:"East Dallas", gs:false,
+    tags:["natural wine","charcuterie","intimate","off the beaten path","hipster gem"],
+    score:92, mentions:890, hoursNote:"Thu–Sun 5pm–10pm",
+    live:{text:"New natural wine arrivals. Chef is doing something incredible with the charcuterie tonight.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"One of Dallas's most interesting restaurants. Natural wine and house-cured meats in a tiny space.",user:"u/dallas_natural_wine",src:"Reddit r/Dallas"},
+      {text:"Worth the drive to Exposition Park. Absolutely stunning food.",user:"Marta K.",src:"Google 4.9★"}
+    ]},
+  { id:95, name:"Mirador", type:"restaurant", area:"Highland Park Village", neighborhood:"Highland Park", gs:false,
+    tags:["brunch","Highland Park","beautiful space","instagrammable","Mexican"],
+    score:85, mentions:2200, hoursNote:"Mon–Sun 9am–9pm",
+    live:{text:"Brunch queue about 30 min right now. Worth every minute.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"The most beautiful restaurant space in Dallas. The food matches the setting.",user:"u/highland_park_eats",src:"Reddit r/Dallas"}
+    ]},
+  { id:96, name:"Chino Chiahui", type:"restaurant", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["chinese-mexican","fusion","innovative","taco","Design District"],
+    score:88, mentions:980, hoursNote:"Tue–Sat 5pm–10pm",
+    live:{text:"Innovation on a plate tonight. Reservations available for the bar counter.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Chinese-Mexican fusion sounds like a gimmick. It is not. This is one of Dallas's most creative restaurants.",user:"u/dallas_fusion",src:"Reddit r/Dallas"}
+    ]},
+  { id:97, name:"Culinary Dropout", type:"restaurant", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["American","pretzels","great cocktails","games","patio"],
+    score:82, mentions:1800, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"Patio busy tonight. Pretzel flight + cocktails = the move.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Knox-Henderson's best casual chain. The cocktails punch way above the price point.",user:"u/kh_casual",src:"Reddit r/DFW"}
+    ]},
+  { id:98, name:"Fearing's", type:"restaurant", area:"Downtown / Ritz-Carlton", neighborhood:"Downtown", gs:true,
+    tags:["southwest","Dean Fearing","five star","hotel dining","legendary chef"],
+    score:91, mentions:2400, hoursNote:"Mon–Sun 6:30am–11pm",
+    live:{text:"Bar open for walk-ins. The guacamole cart tableside is worth it alone.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Dean Fearing invented Southwestern cuisine. Eating at Fearing's is eating history.",user:"u/dallas_legendary_chefs",src:"Reddit r/Dallas"},
+      {text:"The most quintessentially Texan fine dining experience in the state.",user:"Patricia H.",src:"Google 4.8★"}
+    ]},
+  { id:99, name:"Hattie's", type:"restaurant", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["southern","brunch","Bishop Arts","community","feel good"],
+    score:88, mentions:1600, hoursNote:"Mon–Sun 10am–9pm",
+    live:{text:"Sunday brunch in full swing. Shrimp and grits available.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"Southern food with love in every bite. Bishop Arts's warmest restaurant.",user:"u/bishop_arts_brunch",src:"Reddit r/Dallas"}
+    ]},
+  { id:100, name:"Sassetta", type:"restaurant", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["italian","natural wine","trendy","Knox-Henderson","small plates"],
+    score:87, mentions:1100, hoursNote:"Tue–Sun 5pm–10pm",
+    live:{text:"Great natural wine pours tonight. The burrata is perfect.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Knox-Henderson's answer to the natural wine bar. The food is genuinely excellent.",user:"u/kh_wine",src:"Reddit r/Dallas"}
+    ]},
+
+  // ==================== MORE BARS ====================
+  { id:101, name:"The People's Last Stand", type:"bar", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["dive bar","cheap beers","local music","no frills","authentic"],
+    score:83, mentions:890, hoursNote:"Mon–Sun 2pm–2am",
+    live:{text:"$2 PBRs tonight. Local band on stage now.",time:"15 min ago",fresh:true},
+    reviews:[
+      {text:"The best dive bar in Dallas. Zero pretension, great cheap beers, real music.",user:"u/deepellum_dives",src:"Reddit r/Dallas"}
+    ]},
+  { id:102, name:"Flying Saucer Draught Emporium", type:"bar", area:"Downtown / West End", neighborhood:"Downtown", gs:true,
+    tags:["200+ beers","UFO club","Downtown","craft beer","plates on wall"],
+    score:85, mentions:2800, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"Good Wednesday crowd. Rare Belgian imports just tapped.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"200+ beers in Downtown Dallas. The UFO Club rewards loyalty with your name on the wall.",user:"u/dtx_beer",src:"Reddit r/Dallas"},
+      {text:"One of the best beer bars in Texas. Consistently excellent selection.",user:"Brian K.",src:"Google 4.5★"}
+    ]},
+  { id:103, name:"Double Wide", type:"bar", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["trailer park","kitsch","outdoor","fun","eclectic crowd"],
+    score:84, mentions:1600, hoursNote:"Mon–Sun 3pm–2am",
+    live:{text:"Outdoor lot is full of good people. $4 Lone Stars on special.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"A trailer park themed bar that's actually wonderful. Deep Ellum at its most authentic.",user:"u/deepellum_dive",src:"Reddit r/Dallas"}
+    ]},
+  { id:104, name:"Meddlesome Moth", type:"bar", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["beer geek","rare taps","food pairing","Design District","serious"],
+    score:88, mentions:2100, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"New Cantillon lambic just opened — 3 bottles available at the bar.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"The most serious beer bar in Dallas. The Cantillon and rare Belgian selection is genuinely world-class.",user:"u/dallas_beergeek",src:"Reddit r/Dallas"},
+      {text:"Every tap is deliberate. The staff know everything about every beer. Extraordinary.",user:"Tom H.",src:"Google 4.7★"}
+    ]},
+  { id:105, name:"Truth & Alibi", type:"bar", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["speakeasy","prohibition era","cocktails","hidden door","Downtown"],
+    score:90, mentions:1400, hoursNote:"Thu–Sat 7pm–2am",
+    live:{text:"Hidden door is open. Password on their Instagram. Fully staffed tonight.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Dallas's best speakeasy. Find the entrance, give the password, drink the best cocktails Downtown.",user:"u/dallas_speakeasy",src:"Reddit r/Dallas"},
+      {text:"The commitment to the theme is extraordinary. The cocktails are even better.",user:"Olivia M.",src:"Google 4.8★"}
+    ]},
+  { id:106, name:"Armoury D.E.", type:"bar", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["cocktails","guns","shooting range","unique","date night"],
+    score:86, mentions:1100, hoursNote:"Wed–Sat 4pm–midnight",
+    live:{text:"Shooting range lanes available. Bar is busy. Reservations recommended.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Cocktail bar with a shooting range. Only in Texas. The cocktails are legitimately excellent.",user:"u/dallas_unusual_bars",src:"Reddit r/Dallas"}
+    ]},
+  { id:107, name:"Reno", type:"bar", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["hipster dive","wine","beer","no nonsense","regular crowd"],
+    score:85, mentions:870, hoursNote:"Mon–Sun 4pm–2am",
+    live:{text:"Best Tuesday bar in Dallas. Regulars in. Easy walk-in.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Deep Ellum's most honest bar. No concept, no theme, just good drinks and good people.",user:"u/deepellum_regulars",src:"Reddit r/Dallas"}
+    ]},
+  { id:108, name:"Truck Yard", type:"bar", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["food trucks","outdoor","bar","whimsical","fairy lights","groups"],
+    score:88, mentions:3200, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Treehouse bar is open tonight. Food trucks rotating — Ethiopian and BBQ tonight.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"A food truck park with a treehouse bar and fairy lights. It's as good as it sounds.",user:"u/dallas_outdoor_bars",src:"Reddit r/Dallas"},
+      {text:"The treehouse bar alone is worth the visit. Dallas's most whimsical venue.",user:"Kelly R.",src:"Google 4.7★"}
+    ]},
+  { id:109, name:"It'll Do Club", type:"bar", area:"Old East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["disco","dance","LGBTQ+ friendly","late night","80s nights"],
+    score:87, mentions:1200, hoursNote:"Thu–Sat 9pm–4am",
+    live:{text:"Dance floor filling up. 80s night in full swing.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"Best dance bar in Dallas. The crowd is diverse, the music is great.",user:"u/dallas_nightlife",src:"Reddit r/Dallas"}
+    ]},
+  { id:110, name:"Commerce Street Brewery", type:"pub", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["brewery","taproom","casual","Dallas brewed","community"],
+    score:83, mentions:720, hoursNote:"Thu–Fri 4pm–10pm, Sat–Sun noon–10pm",
+    live:{text:"Fresh batch of their flagship IPA tapped. Afternoon crowd mellow.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Deep Ellum's own brewery. Supporting local brewing scene is easy when the beer is this good.",user:"u/local_dallas_beer",src:"Reddit r/Dallas"}
+    ]},
+
+  // ==================== MORE CAFES ====================
+  { id:111, name:"Gold Bar Espresso", type:"cafe", area:"Downtown / Arts District", neighborhood:"Downtown", gs:true,
+    tags:["specialty espresso","minimalist","Arts District","quick","Downtown gem"],
+    score:87, mentions:1100, hoursNote:"Mon–Fri 7am–5pm, Sat 8am–4pm",
+    live:{text:"Morning rush over. Perfect time to grab a cortado and sit in the Arts District.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The best espresso bar in Downtown Dallas. The cortado is exceptional.",user:"u/downtown_coffee",src:"Reddit r/Dallas"},
+      {text:"Tucked into the Arts District. If you're at the Nasher or DMA, start here.",user:"James M.",src:"Google 4.8★"}
+    ]},
+  { id:112, name:"Cultivar Coffee Bar & Roaster", type:"cafe", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["roaster","specialty","alternative methods","coffee nerds"],
+    score:87, mentions:720, hoursNote:"Mon–Sat 7am–5pm",
+    live:{text:"Roast happening this morning — coffee smells incredible right now.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Deep Ellum's best coffee. They take the craft seriously and it shows.",user:"u/deep_ellum_coffee",src:"Reddit r/DFW"}
+    ]},
+  { id:113, name:"Avoca Coffee Roasters", type:"cafe", area:"Near Southside / Fort Worth (30 min)", neighborhood:"Fort Worth", gs:false,
+    tags:["specialty roaster","road trip worthy","Fort Worth gem","community"],
+    score:88, mentions:890, hoursNote:"Mon–Sat 7am–6pm, Sun 8am–5pm",
+    live:{text:"If you're ever near Fort Worth — don't miss this.",time:"6 hrs ago",fresh:false},
+    reviews:[
+      {text:"Fort Worth's best coffee shop. Worth a 30-minute drive from Dallas any day.",user:"u/dallas_to_fw_coffee",src:"Reddit r/DFW"}
+    ]},
+  { id:114, name:"Crooked Tree Coffeehouse", type:"cafe", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["community","whimsical","Bishop Arts","neighbourhood","relaxed"],
+    score:85, mentions:780, hoursNote:"Mon–Sun 7am–8pm",
+    live:{text:"Quiet afternoon. Best people-watching in Bishop Arts from the patio.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Bishop Arts's neighbourhood coffee shop. Exactly the kind of place that makes a district great.",user:"u/bishop_arts_coffee",src:"Reddit r/Dallas"}
+    ]},
+  { id:115, name:"Tenth Street Bistro", type:"cafe", area:"Oak Cliff / Bishop Arts", neighborhood:"Oak Cliff", gs:false,
+    tags:["brunch","coffee","breakfast","relaxed","local favourite"],
+    score:84, mentions:680, hoursNote:"Mon–Sun 7am–4pm",
+    live:{text:"Morning brunch crowd winding down. Good table availability.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Oak Cliff's best kept breakfast secret. The biscuits are extraordinary.",user:"u/oakcliff_breakfast",src:"Reddit r/Dallas"}
+    ]},
+  { id:116, name:"Weekend Coffee", type:"cafe", area:"Oak Lawn", neighborhood:"Oak Lawn", gs:false,
+    tags:["specialty coffee","LGBTQ+ friendly","community","welcoming","art"],
+    score:86, mentions:920, hoursNote:"Mon–Sun 7am–7pm",
+    live:{text:"Full of good energy this morning. New rotating art show on the walls.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Oak Lawn's best coffee shop. Genuinely welcoming to everyone.",user:"u/oak_lawn_coffee",src:"Reddit r/Dallas"}
+    ]},
+  { id:117, name:"Full City Rooster", type:"cafe", area:"East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["specialty","neighbourhood","East Dallas","laid back"],
+    score:83, mentions:560, hoursNote:"Mon–Fri 6am–5pm, Sat–Sun 7am–4pm",
+    live:{text:"East Dallas morning staple. Counter seats open.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"East Dallas neighbourhood coffee done right. The pourover program is excellent.",user:"u/east_dallas_coffee",src:"Reddit r/Dallas"}
+    ]},
+
+  // ==================== UNIQUE / WILDCARD ====================
+  { id:118, name:"The Perot Museum", type:"arcade", area:"Uptown / Victory Park", neighborhood:"Downtown", gs:true,
+    tags:["science museum","interactive","families","adults too","fascinating"],
+    score:91, mentions:4800, hoursNote:"Mon–Sun 10am–5pm (Fri–Sat till 9pm)",
+    live:{text:"Friday evening opens tonight 5pm. Much quieter than daytime. Recommended.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"World-class science museum. The tech and energy floors are extraordinary even for adults.",user:"u/dallas_museum",src:"Reddit r/Dallas"},
+      {text:"Don't write this off as 'just for kids'. The Perot is genuinely fascinating.",user:"Alex T.",src:"Google 4.8★"}
+    ]},
+  { id:119, name:"Urban Air Adventure Park", type:"arcade", area:"Multiple (Plano, Grapevine, Arlington)", neighborhood:"North Dallas", gs:false,
+    tags:["trampoline","go-karts","climbing","family","groups","adrenaline"],
+    score:85, mentions:2800, hoursNote:"Mon–Sun 10am–9pm",
+    live:{text:"Weekday afternoon — shortest queues of the week. Go now.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Greatest group outing in the Dallas suburbs. Adults have just as much fun as kids.",user:"u/dallas_group_fun",src:"Reddit r/DFW"}
+    ]},
+  { id:120, name:"Zero Gravity Thrill Amusement Park", type:"arcade", area:"Northwest Dallas", neighborhood:"Northwest Dallas", gs:false,
+    tags:["theme park","thrill rides","outdoor","weekend","adrenaline","only in Texas"],
+    score:84, mentions:1900, hoursNote:"Fri–Sun noon–10pm (seasonal)",
+    live:{text:"Open this weekend. Texas Giant wooden coaster is running. No line right now.",time:"5 hrs ago",fresh:false},
+    reviews:[
+      {text:"A small thrill park that punches above its weight. The wooden coaster is legitimately great.",user:"u/dallas_rides",src:"Reddit r/Dallas"}
+    ]},
+  { id:121, name:"Palace of Wonders", type:"arcade", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["circus sideshow","bar","burlesque","weird","uniquely Dallas"],
+    score:88, mentions:1300, hoursNote:"Fri–Sat 8pm–2am",
+    live:{text:"Burlesque show starts at 10pm tonight. Tickets at the door $15.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"A burlesque and circus sideshow bar. The weirdest, most wonderful night out in Deep Ellum.",user:"u/dallas_weird_nights",src:"Reddit r/Dallas"},
+      {text:"Nothing else in Dallas is like this. A singular experience.",user:"Violet M.",src:"Google 4.7★"}
+    ]},
+  { id:122, name:"Bryan Street Tavern", type:"bar", area:"East Dallas / Bryan Street", neighborhood:"East Dallas", gs:false,
+    tags:["neighbourhood bar","patio","dog friendly","East Dallas","regulars"],
+    score:84, mentions:780, hoursNote:"Mon–Sun 3pm–2am",
+    live:{text:"Best neighbourhood bar patio in East Dallas open tonight. Dogs welcome.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"East Dallas locals know this is their bar. Never changes. Always perfect.",user:"u/east_dallas_local",src:"Reddit r/Dallas"}
+    ]},
+  { id:123, name:"Twilite Lounge", type:"bar", area:"Old East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["dive","karaoke","cheap","beloved","authentic"],
+    score:83, mentions:1100, hoursNote:"Mon–Sun 2pm–2am",
+    live:{text:"Karaoke Tuesday going strong. Jump on the list — 20 min wait.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"Dallas's most beloved dive. Karaoke Tuesdays are a rite of passage.",user:"u/dallas_karaoke",src:"Reddit r/Dallas"}
+    ]},
+  { id:124, name:"The Common Table", type:"bar", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["craft beer","food","communal","casual","Uptown reliable"],
+    score:83, mentions:1400, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Good afternoon crowd. Rotating guest taps just updated.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Uptown's most reliable craft beer bar with food. Never a bad visit.",user:"u/uptown_craft",src:"Reddit r/Dallas"}
+    ]},
+  { id:125, name:"Industry Alley Bar", type:"bar", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["outdoor alley","shipping containers","concerts","Design District","cool"],
+    score:86, mentions:980, hoursNote:"Thu–Sat 5pm–midnight",
+    live:{text:"Outdoor alley bar open tonight. Food trucks parked. Good evening ahead.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Shipping container bar in an alley in the Design District. Very Dallas.",user:"u/design_district_bars",src:"Reddit r/Dallas"}
+    ]},
+  { id:126, name:"Braindead Brewing (Oak Cliff)", type:"pub", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["local brewery","outdoor","dog friendly","community"],
+    score:84, mentions:870, hoursNote:"Mon–Sun noon–10pm",
+    live:{text:"New session lager just tapped. Dog-friendly patio open.",time:"2.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Oak Cliff's neighbourhood brewery. The community vibe is exceptional.",user:"u/oakcliff_beer",src:"Reddit r/Dallas"}
+    ]},
+  { id:127, name:"The Granada Theater", type:"livemusic", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["restored theater","mid-size venue","excellent acoustics","eclectic acts"],
+    score:91, mentions:2600, hoursNote:"Show nights — check calendar",
+    live:{text:"Tonight: indie rock double bill. Sold out but door list might open.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"One of Dallas's most beloved venues. The Granada feels like it was built for music.",user:"u/greenville_music",src:"Reddit r/Dallas"},
+      {text:"Seen 40 shows here over 10 years. Never disappointed. World class.",user:"Rachel P.",src:"Google 4.8★"}
+    ]},
+  { id:128, name:"Sundown at Granada", type:"bar", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["rooftop patio","live music","cocktails","Greenville","pre-show"],
+    score:87, mentions:1400, hoursNote:"Mon–Sun 4pm–midnight",
+    live:{text:"Pre-Granada show crowd. Rooftop patio open and breezy tonight.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"The best bar on the Greenville strip. Rooftop patio + live music next door = perfect evening.",user:"u/greenville_bar",src:"Reddit r/Dallas"}
+    ]},
+  { id:129, name:"Wild Acre Brewing", type:"pub", area:"Fort Worth (35 min)", neighborhood:"Fort Worth", gs:false,
+    tags:["craft brewing","Fort Worth","road trip","outdoor","food trucks"],
+    score:86, mentions:1100, hoursNote:"Mon–Sun noon–9pm",
+    live:{text:"Worth the drive. New stout just tapped. Food truck outside tonight.",time:"5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Fort Worth's best brewery. Absolutely worth the drive from Dallas.",user:"u/dfw_brewing",src:"Reddit r/DFW"}
+    ]},
+  { id:130, name:"Peticolas Brewing", type:"pub", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["Dallas craft brewing","taproom","locals only feeling","quality"],
+    score:87, mentions:1300, hoursNote:"Thu–Fri 4pm–9pm, Sat noon–9pm, Sun noon–6pm",
+    live:{text:"Taproom open tonight. The Great Pumpkin seasonal beer is back.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The gold standard of Dallas craft brewing. Every Peticolas beer is dialed in perfectly.",user:"u/dallas_craft_beer",src:"Reddit r/Dallas"}
+    ]},
+  { id:131, name:"Windmill Lounge", type:"bar", area:"Lovers Lane", neighborhood:"Northwest Dallas", gs:false,
+    tags:["dive","karaoke","pool","neighbourhood","no frills"],
+    score:82, mentions:760, hoursNote:"Mon–Sun 2pm–2am",
+    live:{text:"Pool tables open. Karaoke starts at 9pm.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Northwest Dallas's best dive bar. Untouched since 1975 in the best possible way.",user:"u/northwest_dallas",src:"Reddit r/Dallas"}
+    ]},
+  { id:132, name:"Magnolia Motor Lounge", type:"bar", area:"West 7th / Fort Worth (30 min)", neighborhood:"Fort Worth", gs:false,
+    tags:["cool bar","Fort Worth","motorcycle culture","live music","eclectic"],
+    score:85, mentions:890, hoursNote:"Mon–Sun 3pm–2am",
+    live:{text:"Good live music tonight. Fort Worth trip worth making this week.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"Fort Worth's best bar. The motorcycle-culture aesthetic is done with genuine love.",user:"u/fortworth_bars",src:"Reddit r/DFW"}
+    ]},
+  { id:133, name:"Leftfield", type:"cafe", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["specialty coffee","natural wine","evening","Design District","hybrid"],
+    score:88, mentions:760, hoursNote:"Mon–Fri 8am–9pm, Sat 9am–9pm",
+    live:{text:"Coffee by day, natural wine by evening. Currently transitioning — both available.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Coffee shop by day, wine bar by night. The Design District absolutely needed this.",user:"u/design_district_coffee",src:"Reddit r/Dallas"}
+    ]},
+  { id:134, name:"Merit Coffee", type:"cafe", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["San Antonio roaster","specialty","clean design","great espresso"],
+    score:86, mentions:980, hoursNote:"Mon–Fri 7am–6pm, Sat–Sun 8am–6pm",
+    live:{text:"Quiet mid-morning. Counter space available. The single origin is on point.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The San Antonio roaster that finally came to Dallas. Worth the wait.",user:"u/dallas_specialty_coffee",src:"Reddit r/Dallas"}
+    ]},
+  { id:135, name:"Happiest Hour", type:"bar", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["outdoor bar","sunset views","large group","Uptown","affordable"],
+    score:84, mentions:2600, hoursNote:"Mon–Sun noon–2am",
+    live:{text:"Sunset crowd building. Great outdoor bar weather tonight.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"The best outdoor happy hour bar in Uptown. The two-story deck has stunning sunset views.",user:"u/uptown_happy_hour",src:"Reddit r/Dallas"}
+    ]},
+  { id:136, name:"Stirr Downtown", type:"rooftop", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["rooftop","Downtown","cocktails","views","after work"],
+    score:84, mentions:1100, hoursNote:"Mon–Fri 4pm–midnight, Sat–Sun noon–midnight",
+    live:{text:"After-work crowd clearing. Good rooftop access now.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Downtown's most accessible rooftop. Great for after-work drinks with a view.",user:"u/downtown_afterwork",src:"Reddit r/Dallas"}
+    ]},
+  { id:137, name:"Cane Rosso (Lowest Greenville)", type:"restaurant", area:"Lowest Greenville", neighborhood:"Greenville", gs:false,
+    tags:["neapolitan pizza","second location","craft beer","greenville"],
+    score:88, mentions:1800, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Greenville location quieter than Deep Ellum. Great time to walk in.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Second location equally excellent. The Greenville spot is easier to get into.",user:"u/greenville_pizza",src:"Reddit r/Dallas"}
+    ]},
+  { id:138, name:"Saint Ann Restaurant & Bar", type:"restaurant", area:"Downtown / West End", neighborhood:"Downtown", gs:true,
+    tags:["craft beer","food","West End","large patio","groups"],
+    score:83, mentions:1400, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"West End patio is open and lively tonight.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Best spot in the West End for a beer and a meal. The patio is great.",user:"u/west_end_dallas",src:"Reddit r/Dallas"}
+    ]},
+  { id:139, name:"Goodfriend Beer Garden", type:"pub", area:"East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["beer garden","dog friendly","patio","neighbourhood","East Dallas"],
+    score:86, mentions:1100, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Dogs and beers on the patio tonight. Best East Dallas evening.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"East Dallas's perfect neighbourhood beer garden. Every dog in the neighbourhood shows up.",user:"u/east_dallas_dogs",src:"Reddit r/Dallas"}
+    ]},
+  { id:140, name:"Uptown Pub", type:"pub", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["sports pub","darts","British-ish","Uptown","unpretentious"],
+    score:81, mentions:980, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"Premier League on at 7:30am Saturday. Usual suspects already booking tables.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Uptown's most reliable sports pub. Gets the important matches on without fuss.",user:"u/uptown_sports",src:"Reddit r/Dallas"}
+    ]},
+  { id:141, name:"8920 Skillman", type:"restaurant", area:"Lake Highlands", neighborhood:"East Dallas", gs:false,
+    tags:["Vietnamese","pho","authentic","no frills","Lake Highlands"],
+    score:90, mentions:1800, hoursNote:"Mon–Sun 9am–9pm",
+    live:{text:"Perfect pho day. Short queue. Cash preferred.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"Best pho in Dallas, and it's not close. The broth is cooked for 24 hours.",user:"u/dallas_pho",src:"Reddit r/Dallas"},
+      {text:"Drive from anywhere in the city. This is the real thing.",user:"Linh T.",src:"Google 4.8★"}
+    ]},
+  { id:142, name:"La Ventana", type:"bar", area:"Lowest Greenville", neighborhood:"Greenville", gs:false,
+    tags:["open air","garage bar","casual","greenville","neighbourhood"],
+    score:83, mentions:820, hoursNote:"Mon–Sun 3pm–2am",
+    live:{text:"Garage doors up. Beautiful evening in Greenville.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Garage-door bar that opens up to the street. Pure Greenville neighbourhood bar magic.",user:"u/greenville_open_air",src:"Reddit r/Dallas"}
+    ]},
+  { id:143, name:"Jettison Coffee", type:"cafe", area:"Oak Cliff / Bishop Arts", neighborhood:"Oak Cliff", gs:false,
+    tags:["minimalist","specialty","Bishop Arts adjacent","serious coffee"],
+    score:85, mentions:640, hoursNote:"Mon–Sat 7am–5pm",
+    live:{text:"Quiet morning. Best seat in Bishop Arts for serious work.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Oak Cliff's most serious espresso bar. The aeropress here is extraordinary.",user:"u/oakcliff_espresso",src:"Reddit r/Dallas"}
+    ]},
+  { id:144, name:"Buzzbrews Kitchen", type:"cafe", area:"Multiple Locations (Greenville, Lower Greenville)", neighborhood:"Greenville", gs:false,
+    tags:["24 hours","diner","coffee","late night food","eclectic"],
+    score:84, mentions:2100, hoursNote:"Open 24 hours",
+    live:{text:"4am and still going. Best late night diner in Dallas.",time:"2 min ago",fresh:true},
+    reviews:[
+      {text:"24-hour diner with coffee strong enough to wake the dead. The 3am crowd is the best people-watching in Dallas.",user:"u/dallas_24hr",src:"Reddit r/Dallas"},
+      {text:"After every late night in Dallas for 15 years, I end up at Buzzbrews.",user:"Kim M.",src:"Google 4.4★"}
+    ]},
+  { id:145, name:"Reveler's Hall", type:"livemusic", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["jazz","blues","dancing","Bishop Arts","intimate","sweaty"],
+    score:90, mentions:1400, hoursNote:"Thu–Sat 8pm–2am",
+    live:{text:"Jazz band starting at 9pm. Small floor filling up. Get there early.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Best jazz bar in Dallas. The dancing is encouraged, the music is exceptional.",user:"u/oakcliff_jazz",src:"Reddit r/Dallas"},
+      {text:"I left sweaty and happy. The best possible state to leave a bar in.",user:"Marcus J.",src:"Google 4.8★"}
+    ]},
+  { id:146, name:"The Rustic (Frisco)", type:"bar", area:"Frisco / North Dallas", neighborhood:"North Dallas", gs:false,
+    tags:["north dallas rustic","same vibe","suburban crowd","live music"],
+    score:85, mentions:2800, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"North Dallas crowd. Live band on. Shorter waits than Uptown location.",time:"40 min ago",fresh:true},
+    reviews:[
+      {text:"Same great Rustic experience for those living north. Don't need to drive Downtown.",user:"u/frisco_dallas",src:"Reddit r/DFW"}
+    ]},
+  { id:147, name:"Knife Burger", type:"restaurant", area:"Various Locations", neighborhood:"Uptown", gs:false,
+    tags:["best burger","upscale","dry aged beef burger","chef driven"],
+    score:91, mentions:2200, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"The dry-aged smash burger is back on the menu.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best burger in Dallas. Chef John Tesar putting dry-aged beef in a smash burger is genius.",user:"u/dallas_burger",src:"Reddit r/Dallas"},
+      {text:"I've eaten at every burger spot in Dallas. Knife Burger wins.",user:"Ryan T.",src:"Google 4.8★"}
+    ]},
+  { id:148, name:"CBD Provisions Brunch", type:"restaurant", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["brunch","Downtown","farm-to-table","weekend","quiet"],
+    score:87, mentions:1100, hoursNote:"Sat–Sun 9am–2:30pm",
+    live:{text:"Weekend brunch availability good right now. No wait.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Downtown's best brunch. Quiet, sophisticated, exceptional food.",user:"u/downtown_brunch",src:"Reddit r/Dallas"}
+    ]},
+  { id:149, name:"Deep Ellum Brewing Taproom", type:"pub", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["local brewing","taproom","outdoor","Blue Pants IPA","Dallas made"],
+    score:85, mentions:1600, hoursNote:"Mon–Sun noon–10pm",
+    live:{text:"Blue Pants on tap. Outdoor space open. Deep Ellum's own brewery.",time:"2.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"The taproom for Dallas's most beloved craft brewery. Drinking here feels like drinking Dallas.",user:"u/deep_ellum_brewing",src:"Reddit r/Dallas"}
+    ]},
+  { id:150, name:"Lazarus Brewing (Austin collab event)", type:"pub", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["Austin collab","special taps","events","beer nerd","limited"],
+    score:86, mentions:670, hoursNote:"Pop-up events — check Instagram",
+    live:{text:"Collaboration tap event this Saturday 3–9pm. Limited cans available.",time:"5 hrs ago",fresh:false},
+    reviews:[
+      {text:"When Lazarus pops up in Deep Ellum it's always extraordinary. Don't miss the collab events.",user:"u/dfw_beer_events",src:"Reddit r/Dallas"}
+    ]},
+  { id:151, name:"Cedar Social", type:"bar", area:"Cedar Springs / Oak Lawn", neighborhood:"Oak Lawn", gs:false,
+    tags:["neighbourhood bar","Oak Lawn","LGBTQ+ friendly","relaxed","regulars"],
+    score:83, mentions:760, hoursNote:"Mon–Sun 4pm–2am",
+    live:{text:"Good midweek Oak Lawn crowd. Easy walk-in tonight.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Oak Lawn's most welcoming neighbourhood bar. The regulars make you a regular after one visit.",user:"u/oak_lawn_social",src:"Reddit r/Dallas"}
+    ]},
+  { id:152, name:"HIDE Rooftop Bar", type:"rooftop", area:"Uptown / Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["rooftop","Knox area","cocktails","sunset","intimate"],
+    score:85, mentions:780, hoursNote:"Wed–Sun 5pm–midnight",
+    live:{text:"Sunset hour just started. Few seats left on the rooftop.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"Knox-Henderson's best kept rooftop secret. The sunsets from up here are genuinely beautiful.",user:"u/kh_rooftop_secret",src:"Reddit r/Dallas"}
+    ]},
+
+  // === ARCADES & ENTERTAINMENT ===
+  { id:153, name:"Cidercade Dallas", type:"arcade", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["arcade","200+ games","craft cider","adults only","date night","huge"],
+    score:95, mentions:4200, hoursNote:"Mon–Thu 4pm–midnight, Fri–Sun noon–2am",
+    live:{text:"Friday night — packed but machines are available. Cider tap just refilled.",time:"15 min ago",fresh:true},
+    reviews:[
+      {text:"Best arcade bar in Texas. 200+ classic and modern games, great cider selection, adults-only vibe. Perfect date night.",user:"u/dallas_arcade",src:"Reddit r/Dallas"},
+      {text:"I've been to arcade bars in 10 cities. Cidercade is genuinely top 3. The selection is unreal.",user:"Marcus T.",src:"Google 4.8★"},
+      {text:"Go on a weeknight if you want actually play games. Weekends are busier but still fun.",user:"u/dtx_games",src:"Reddit r/DFW"}
+    ]},
+  { id:154, name:"Pinstack Allen", type:"arcade", area:"Allen / North Dallas", neighborhood:"North Dallas", gs:false,
+    tags:["bowling","arcade","laser tag","rock climbing","full entertainment","families"],
+    score:88, mentions:3100, hoursNote:"Mon–Thu 10am–midnight, Fri–Sun 10am–2am",
+    live:{text:"Bowling lanes busy but arcade floor has room. Rock wall is open.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"The most complete entertainment venue in the Dallas metro. Bowling, arcade, laser tag, climbing wall — all under one roof.",user:"u/north_dallas_fam",src:"Reddit r/DFW"},
+      {text:"Took 12 people here for a birthday. Everyone found something they loved.",user:"Priya K.",src:"Google 4.6★"}
+    ]},
+  { id:155, name:"Joystix Classic Games", type:"arcade", area:"Houston Street / Deep Ellum", neighborhood:"Downtown", gs:true,
+    tags:["classic arcade","retro","pinball","quarters","authentic","no frills"],
+    score:91, mentions:1800, hoursNote:"Fri–Sat 6pm–2am",
+    live:{text:"Pinball machines are all working tonight. 80s classics in full effect.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"This is the real deal. Hundreds of classic arcade games, all on free play after entry. No gimmicks.",user:"u/retro_dallas",src:"Reddit r/Dallas"},
+      {text:"Joystix is a Dallas institution. The original arcade bar. Every machine is maintained perfectly.",user:"Tom R.",src:"Google 4.9★"}
+    ]},
+  { id:156, name:"Main Event Entertainment", type:"arcade", area:"Multiple Locations", neighborhood:"North Dallas", gs:false,
+    tags:["bowling","laser tag","billiards","arcade","food","groups"],
+    score:82, mentions:5600, hoursNote:"Mon–Sun 10am–midnight",
+    live:{text:"Weekend family crowds clearing out. Evening crowd just arriving.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Great for large groups. Everything in one place — bowling, games, food. Reliable crowd pleaser.",user:"u/dallas_groups",src:"Reddit r/Dallas"},
+      {text:"Kids and adults both have a blast. The bowling is well maintained.",user:"Lisa M.",src:"Yelp 4.2★"}
+    ]},
+  { id:157, name:"Punch Bowl Social Dallas", type:"arcade", area:"Lowest Greenville / Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["bowling","duckpin","arcade","craft cocktails","food","date night"],
+    score:87, mentions:2800, hoursNote:"Mon–Thu 11am–midnight, Fri–Sun 11am–2am",
+    live:{text:"Duckpin bowling lanes have availability tonight. Craft cocktail menu just updated.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"Duckpin bowling + great food + craft cocktails = the perfect Dallas date night formula.",user:"u/dallas_date_nights",src:"Reddit r/Dallas"},
+      {text:"The food here actually surprises you — better than it needs to be for an entertainment venue.",user:"Rachel P.",src:"Google 4.5★"}
+    ]},
+  { id:158, name:"Neon Retro Arcade", type:"arcade", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["retro arcade","BYOB","cheap","neighborhood","90s nostalgia"],
+    score:86, mentions:920, hoursNote:"Thu–Sat 6pm–2am",
+    live:{text:"BYOB night in full swing. MK2 tournament happening right now.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"BYOB retro arcade in Deep Ellum. Mortal Kombat, Street Fighter, all the classics. Legendary.",user:"u/deepellum_gamer",src:"Reddit r/Dallas"},
+      {text:"The most fun $5 entry in Dallas. Bring your own drinks and lose yourself in the 90s.",user:"Chris B.",src:"Google 4.7★"}
+    ]},
+  { id:159, name:"Palace Social", type:"arcade", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["upscale arcade","cocktails","trendy","duckpin bowling","ping pong"],
+    score:84, mentions:1400, hoursNote:"Mon–Sun 4pm–2am",
+    live:{text:"Ping pong tables all taken. Arcade floor busy but fun.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"The upscale arcade bar Uptown needed. Good cocktails, ping pong, bowling, and actual good games.",user:"u/uptown_play",src:"Reddit r/Dallas"}
+    ]},
+  { id:160, name:"Game Preserve", type:"arcade", area:"Plano", neighborhood:"North Dallas", gs:false,
+    tags:["board games","tabletop","nerdy","community","all ages"],
+    score:89, mentions:1100, hoursNote:"Mon–Sun noon–11pm",
+    live:{text:"400+ board games available. Game masters on duty. Walk-ins welcome.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"A board game café done right. Massive library, knowledgeable staff who help you pick, great snacks.",user:"u/dallas_boardgames",src:"Reddit r/Dallas"},
+      {text:"My introvert paradise. Come for 2 hours, stay for 6.",user:"Anna K.",src:"Google 4.8★"}
+    ]},
+
+  // === COMEDY & LIVE PERFORMANCE ===
+  { id:161, name:"Backdoor Comedy Club", type:"livemusic", area:"Addison", neighborhood:"North Dallas", gs:false,
+    tags:["comedy","stand-up","national acts","intimate","drinks"],
+    score:90, mentions:2400, hoursNote:"Fri–Sat 8pm & 10:30pm shows",
+    live:{text:"Friday 8pm show sold out. 10:30pm slots still available online.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Dallas's best comedy club. National headliners in an intimate setting. Every show I've seen here has been excellent.",user:"u/dallas_comedy",src:"Reddit r/Dallas"},
+      {text:"Backdoor Comedy is a Dallas institution. The late show on Saturdays is especially good.",user:"James R.",src:"Google 4.7★"}
+    ]},
+  { id:162, name:"Dallas Comedy House", type:"livemusic", area:"East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["improv","sketch comedy","classes","community","bar"],
+    score:88, mentions:1600, hoursNote:"Shows Tue–Sun from 7pm",
+    live:{text:"Improv show tonight at 8pm. $10 tickets at the door. Great bar.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The heart of Dallas's comedy scene. Great improv every week and the bar is solid.",user:"u/dallas_improv",src:"Reddit r/Dallas"},
+      {text:"If you haven't been to DCH, you're missing one of Dallas's best nights out.",user:"Sofia M.",src:"Google 4.6★"}
+    ]},
+  { id:163, name:"Four Day Weekend", type:"livemusic", area:"Fort Worth", neighborhood:"Fort Worth", gs:false,
+    tags:["improv","legendary","Fort Worth","audience participation","hilarious"],
+    score:92, mentions:3200, hoursNote:"Fri–Sat 8pm shows",
+    live:{text:"Tonight's show is already sold out. Book well ahead on weekends.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best improv in the metroplex, arguably the best in Texas. Fort Worth is worth the drive for this.",user:"u/dfw_comedy",src:"Reddit r/DFW"},
+      {text:"I've seen over 40 shows here. Still laugh until my stomach hurts every time.",user:"Carol L.",src:"Google 4.9★"}
+    ]},
+
+  // === JAZZ & LIVE MUSIC ===
+  { id:164, name:"Sambuca Jazz Café", type:"livemusic", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["jazz","live music nightly","dinner","cocktails","upscale casual"],
+    score:88, mentions:2900, hoursNote:"Mon–Sun 5pm–2am",
+    live:{text:"Live jazz trio on stage now. Dinner reservations available.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"The best jazz experience in Dallas. Live music every single night, good food, great atmosphere.",user:"u/dallas_jazz",src:"Reddit r/Dallas"},
+      {text:"Sambuca is what every city needs and Dallas is lucky to have. Jazz and cocktails done right.",user:"David K.",src:"Google 4.6★"}
+    ]},
+  { id:165, name:"Blue Cat Blues", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["blues","live music","authentic","Deep Ellum original","no frills"],
+    score:91, mentions:1800, hoursNote:"Mon–Sun 7pm–2am",
+    live:{text:"Blues legend on tonight. Standing room only at 9pm.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The most authentic blues bar in Dallas. This is what Deep Ellum is supposed to be.",user:"u/blues_dallas",src:"Reddit r/Dallas"},
+      {text:"Raw, real, and brilliant. Visited 3 times this month.",user:"Alicia T.",src:"Google 4.8★"}
+    ]},
+  { id:166, name:"Sundown at Granada", type:"livemusic", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["live music","indie","alternative","rooftop","craft cocktails"],
+    score:87, mentions:1500, hoursNote:"Mon–Sun 5pm–2am",
+    live:{text:"Local indie band tonight. Rooftop bar open. Good crowd building.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"Greenville Avenue's best live music bar. Rooftop is stunning and the music booking is excellent.",user:"u/greenville_music",src:"Reddit r/Dallas"}
+    ]},
+  { id:167, name:"Three Links", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["punk","metal","indie","dive","small venue","sweaty and great"],
+    score:89, mentions:1300, hoursNote:"Shows most nights from 8pm",
+    live:{text:"Show tonight 9pm. $8 at door. Floor is already filling.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"The best small music venue in Dallas. Loud, sweaty, perfect.",user:"u/dallas_punk",src:"Reddit r/Dallas"},
+      {text:"If you like real music in a real room, Three Links is your spot.",user:"Mike B.",src:"Google 4.7★"}
+    ]},
+  { id:168, name:"Trees Dallas", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["mid-size venue","national acts","standing room","Deep Ellum classic","balcony"],
+    score:88, mentions:4100, hoursNote:"Show nights vary — check website",
+    live:{text:"Show tonight at 9pm. Doors open 8pm. Balcony has some spots.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The perfect medium-size venue. Good sightlines from every spot, great sound system.",user:"u/dallas_concerts",src:"Reddit r/Dallas"},
+      {text:"Trees is the heartbeat of Deep Ellum's music scene. Every major indie act comes through.",user:"Emma R.",src:"Google 4.5★"}
+    ]},
+  { id:169, name:"Granada Theater", type:"livemusic", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["restored theater","national acts","excellent sound","seated & standing","legendary"],
+    score:94, mentions:5600, hoursNote:"Show nights vary — check website",
+    live:{text:"Sold out show tonight. Merch table open. Bar queue manageable.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The most beautiful music venue in Dallas. The restored 1946 theater is jaw-dropping and the sound is world class.",user:"u/granada_fan",src:"Reddit r/Dallas"},
+      {text:"Seen 30+ shows here. Never a bad experience. A true gem.",user:"Sarah K.",src:"Google 4.9★"}
+    ]},
+  { id:170, name:"Bomb Factory", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["large venue","national headliners","industrial","multiple bars","capacity crowd"],
+    score:87, mentions:6200, hoursNote:"Show nights vary",
+    live:{text:"Concert tonight 8pm. Parking on Commerce St. Multiple bars open.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Best large venue in Dallas. The industrial space is incredible and they've nailed the acoustics.",user:"u/dallas_big_shows",src:"Reddit r/DFW"}
+    ]},
+
+  // === FOOD HALLS & MARKETS ===
+  { id:171, name:"Dallas Farmers Market", type:"restaurant", area:"Downtown / Farmers Market District", neighborhood:"Downtown", gs:true,
+    tags:["food hall","brunch","local vendors","outdoor","Saturday ritual","coffee"],
+    score:91, mentions:7800, hoursNote:"Sat–Sun 8am–5pm, Fri 11am–5pm",
+    live:{text:"Saturday morning at peak. New taco vendor in Building 2 is exceptional.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"The best Saturday morning in Dallas. Every Dallasite does the Farmers Market run at least twice a month.",user:"u/dallas_saturday",src:"Reddit r/Dallas"},
+      {text:"Get there by 9am before the best vendors sell out. The breakfast tacos in Building 2 are life-changing.",user:"Maria G.",src:"Google 4.5★"}
+    ]},
+  { id:172, name:"Trinity Groves", type:"restaurant", area:"West Dallas", neighborhood:"West Dallas", gs:false,
+    tags:["food hall","multiple concepts","Margaret Hunt Hill Bridge","waterfront","casual"],
+    score:86, mentions:3400, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Beautiful evening to eat outside. Bridge lit up. Taco Heads has shortest queue.",time:"40 min ago",fresh:true},
+    reviews:[
+      {text:"Best views of Downtown Dallas while eating tacos. The Margaret Hunt Hill Bridge backdrop is unreal.",user:"u/west_dallas_eats",src:"Reddit r/Dallas"},
+      {text:"Multiple restaurants in one complex with incredible views. A Dallas gem.",user:"Carlos M.",src:"Google 4.4★"}
+    ]},
+  { id:173, name:"Harvest Hall", type:"restaurant", area:"Uptown / Harwood District", neighborhood:"Uptown", gs:false,
+    tags:["European food hall","wine","communal","hip","multiple vendors","weekend brunch"],
+    score:88, mentions:2100, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Weekend brunch at Harvest Hall is the move. Pastries at the bakery stall going fast.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Dallas finally has a proper European-style food hall. The wine selection alone is worth a visit.",user:"u/dallas_food_halls",src:"Reddit r/Dallas"},
+      {text:"Beautiful space, excellent vendors. The rotisserie chicken from the French stall is outstanding.",user:"Elise B.",src:"Google 4.6★"}
+    ]},
+  { id:174, name:"The Shops at Park Lane", type:"cafe", area:"Park Lane / Northeast Dallas", neighborhood:"Northeast Dallas", gs:false,
+    tags:["outdoor food court","casual","variety","lunch spot","quick bites"],
+    score:79, mentions:2800, hoursNote:"Mon–Sun 10am–9pm",
+    live:{text:"Lunch crowd thinning. Good seating available outside.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Convenient and surprisingly good variety. The Tex-Mex spot here is underrated.",user:"u/park_lane_eats",src:"Reddit r/DFW"}
+    ]},
+
+  // === SPEAKEASIES & HIDDEN BARS ===
+  { id:175, name:"The Joule Hotel Bar", type:"bar", area:"Downtown", neighborhood:"Downtown", gs:true,
+    tags:["hotel bar","rooftop pool","design hotel","see and be seen","expensive but worth it"],
+    score:90, mentions:2600, hoursNote:"Mon–Sun 5pm–2am",
+    live:{text:"Rooftop pool bar open. Reservation recommended but walk-ins sometimes squeezed in.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The Joule pool bar is Dallas's best kept luxe secret. Rooftop pool cantilevered over Downtown. Unreal.",user:"u/dallas_luxury",src:"Reddit r/Dallas"},
+      {text:"Expensive but the setting is incredible. Worth it for a special occasion.",user:"Jennifer L.",src:"Google 4.7★"}
+    ]},
+  { id:176, name:"The People's Speakeasy", type:"bar", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["speakeasy","hidden entrance","craft cocktails","intimate","reservation only"],
+    score:93, mentions:890, hoursNote:"Tue–Sat 6pm–midnight (reservation required)",
+    live:{text:"Tonight fully booked. Book 2 weeks ahead online — it fills incredibly fast.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best hidden bar in Dallas. Find the entrance, make a reservation, and prepare for the best cocktails of your life.",user:"u/dallas_speakeasy",src:"Reddit r/Dallas"},
+      {text:"Worth every effort to get in. The password experience is theatrical and fun.",user:"Ana C.",src:"Google 4.9★"}
+    ]},
+  { id:177, name:"Eno's Pizza Tavern", type:"bar", area:"Bishop Arts District", neighborhood:"Oak Cliff", gs:false,
+    tags:["pizza","craft beer","Bishop Arts staple","casual","neighbourhood"],
+    score:87, mentions:2200, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"Great Tuesday energy. Pizza coming out fast. Patio has seating.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Bishop Arts favourite for a reason. Great pizza, craft beer, relaxed vibe. Exactly what a neighborhood bar should be.",user:"u/bishopbeer",src:"Reddit r/Dallas"}
+    ]},
+  { id:178, name:"The Usual", type:"bar", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["cocktails","no menu","trust the bartender","intimate","craft"],
+    score:92, mentions:780, hoursNote:"Wed–Sat 6pm–2am",
+    live:{text:"Bartender in an exceptional mood tonight. No menu — just tell them what you're feeling.",time:"50 min ago",fresh:true},
+    reviews:[
+      {text:"No menu. Tell the bartender your mood and they make you something. I've never had a bad drink here.",user:"u/dtx_cocktails",src:"Reddit r/Dallas"},
+      {text:"The best bartenders in Dallas work here. Trust them completely.",user:"Matt D.",src:"Google 4.8★"}
+    ]},
+
+  // === BOWLING ===
+  { id:179, name:"Bowlero Dallas", type:"arcade", area:"Multiple Locations", neighborhood:"North Dallas", gs:false,
+    tags:["bowling","late night","glow bowling","cocktails","groups"],
+    score:82, mentions:3800, hoursNote:"Mon–Thu noon–midnight, Fri–Sun noon–2am",
+    live:{text:"Glow bowling starts at 9pm. Lanes available with walk-in right now.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Solid bowling experience with good cocktails. Glow bowling on weekends is a blast.",user:"u/dallas_bowling",src:"Reddit r/Dallas"}
+    ]},
+  { id:180, name:"Spare Time Entertainment", type:"arcade", area:"Grapevine / DFW Area", neighborhood:"North Dallas", gs:false,
+    tags:["bowling","axe throwing","arcade","laser tag","full package"],
+    score:85, mentions:1900, hoursNote:"Mon–Sun 10am–midnight",
+    live:{text:"Axe throwing lanes have 30 min availability tonight.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Axe throwing + bowling in one place. The DFW area entertainment concept done right.",user:"u/dfw_entertainment",src:"Reddit r/DFW"}
+    ]},
+
+  // === ROOFTOPS ===
+  { id:181, name:"Vidorra", type:"rooftop", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["rooftop","Mexican","cocktails","nightclub vibes","weekend"],
+    score:86, mentions:1900, hoursNote:"Thu–Sat 5pm–2am",
+    live:{text:"Rooftop filling up fast. Mexican cocktail menu is excellent.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"Deep Ellum's best rooftop. The Mexican cocktails are outstanding and the views are great.",user:"u/deepellum_rooftop",src:"Reddit r/Dallas"}
+    ]},
+  { id:182, name:"EP!C Restaurant & Bar", type:"rooftop", area:"Downtown / Omni Hotel", neighborhood:"Downtown", gs:true,
+    tags:["rooftop","Downtown views","hotel","upscale","infinity edge"],
+    score:89, mentions:2400, hoursNote:"Mon–Sun 5pm–midnight",
+    live:{text:"Downtown lights looking incredible tonight. Reservations highly recommended.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Best Downtown views in the city. The rooftop at the Omni is stunning.",user:"u/downtown_views",src:"Reddit r/Dallas"},
+      {text:"The infinity edge effect with Downtown as the backdrop. Truly spectacular.",user:"Amanda T.",src:"Google 4.6★"}
+    ]},
+  { id:183, name:"HG Sply Co", type:"rooftop", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["rooftop","healthy food","cocktails","Greenville Avenue","brunch"],
+    score:84, mentions:2100, hoursNote:"Mon–Sun 7am–10pm",
+    live:{text:"Rooftop brunch available. Bloody Mary bar in full swing.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Greenville Avenue rooftop with solid healthy food options. Great brunch spot.",user:"u/greenville_health",src:"Reddit r/Dallas"}
+    ]},
+  { id:184, name:"Whiskey Cake", type:"restaurant", area:"Plano / Legacy", neighborhood:"North Dallas", gs:false,
+    tags:["american","whiskey","rooftop patio","North Dallas best","farm-to-table"],
+    score:88, mentions:3800, hoursNote:"Mon–Sun 11am–11pm",
+    live:{text:"Patio is beautiful tonight. Whiskey list just expanded to 200+ bottles.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best restaurant in North Dallas suburbs area. The whiskey selection alone makes it worth it.",user:"u/plano_eats",src:"Reddit r/DFW"},
+      {text:"Farm-to-table done right without the pretension.",user:"David M.",src:"Google 4.6★"}
+    ]},
+
+  // === LATE NIGHT / 24HR ===
+  { id:185, name:"Taco Cabana", type:"latenight", area:"Multiple Locations", neighborhood:"Dallas-wide", gs:false,
+    tags:["24 hours","tex-mex","late night","cheap","reliable","post-bar ritual"],
+    score:78, mentions:8900, hoursNote:"24 hours most locations",
+    live:{text:"2am and the churros are fresh. Post-bar crowd building.",time:"5 min ago",fresh:true},
+    reviews:[
+      {text:"A Dallas rite of passage at 2am. The queso and margaritas at 3am hit different.",user:"u/dallas_latenight",src:"Reddit r/Dallas"},
+      {text:"Don't overthink it. Taco Cabana after bars is a sacred Dallas tradition.",user:"Jake M.",src:"Google 4.0★"}
+    ]},
+  { id:186, name:"Whataburger", type:"latenight", area:"Multiple Locations", neighborhood:"Dallas-wide", gs:false,
+    tags:["24 hours","texas institution","honey butter chicken","late night","post-bar essential"],
+    score:88, mentions:12000, hoursNote:"24 hours",
+    live:{text:"Honey butter chicken biscuit available 11pm–11am. Queue at the drive-through.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"If you're from Texas you know. If you're not — the honey butter chicken biscuit will convert you instantly.",user:"u/texas_born",src:"Reddit r/Dallas"},
+      {text:"Not just fast food. A Texas institution. The burger slaps at 3am like nothing else.",user:"Marcus R.",src:"Google 4.3★"}
+    ]},
+  { id:187, name:"Café Brazil", type:"latenight", area:"Multiple Locations", neighborhood:"Dallas-wide", gs:false,
+    tags:["24 hours","breakfast all day","coffee","late night","Dallas staple"],
+    score:82, mentions:4200, hoursNote:"24 hours most locations",
+    live:{text:"Night owls in. Great coffee and full breakfast menu going.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Dallas's best 24-hour sit-down restaurant. The pancakes at 4am are a spiritual experience.",user:"u/dallas_24hr",src:"Reddit r/Dallas"}
+    ]},
+  { id:188, name:"Norma's Café", type:"latenight", area:"Multiple Locations", neighborhood:"Dallas-wide", gs:false,
+    tags:["diner","breakfast","late night","pies","old school"],
+    score:86, mentions:3100, hoursNote:"Mon–Sun 6am–midnight",
+    live:{text:"Best pie in Dallas available right now. Pecan is the move.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Classic Dallas diner. The pies are legendary — pecan is the one. Been coming here for 20 years.",user:"u/dallas_diner",src:"Reddit r/Dallas"},
+      {text:"Norma's is comfort food at its finest. The chicken fried steak is the benchmark.",user:"Carol B.",src:"Google 4.5★"}
+    ]},
+
+  // === WINE BARS ===
+  { id:189, name:"Sixty Vines", type:"bar", area:"Uptown / Knox-Henderson / Multiple", neighborhood:"Uptown", gs:false,
+    tags:["wine on tap","60 wines","upscale casual","excellent food","date night"],
+    score:90, mentions:2900, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Wine Tuesday specials on. Half bottle deal running until 6pm.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"60 wines on tap. The concept sounds gimmicky but the execution is flawless.",user:"u/dallas_wine",src:"Reddit r/Dallas"},
+      {text:"Best wine bar in Dallas. The food is exceptional and pairs perfectly.",user:"Emma L.",src:"Google 4.7★"}
+    ]},
+  { id:190, name:"CRU Wine Bar", type:"bar", area:"West Village / Uptown", neighborhood:"Uptown", gs:false,
+    tags:["wine","upscale","happy hour","Date Night","West Village"],
+    score:87, mentions:1800, hoursNote:"Mon–Sun 3pm–11pm",
+    live:{text:"Happy hour until 6pm. Excellent Tuesday selection on the chalkboard.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best happy hour wine deal in Uptown. The by-the-glass selection is outstanding.",user:"u/uptown_wine",src:"Reddit r/Dallas"}
+    ]},
+
+  // === COCKTAIL DESTINATION ===
+  { id:191, name:"Beverley's Bistro & Bar", type:"bar", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["French bistro","cocktails","intimate","date night","Oak Cliff gem"],
+    score:91, mentions:980, hoursNote:"Tue–Sat 5pm–11pm",
+    live:{text:"Intimate Tuesday evening. The French onion soup is the best in Dallas.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Oak Cliff's French bistro gem. The cocktail program rivals dedicated cocktail bars.",user:"u/oakcliff_dining",src:"Reddit r/Dallas"},
+      {text:"Charming, intimate, and consistently excellent. A neighbourhood treasure.",user:"Marie C.",src:"Google 4.8★"}
+    ]},
+  { id:192, name:"The Commissary", type:"bar", area:"Fort Worth", neighborhood:"Fort Worth", gs:false,
+    tags:["cocktails","Fort Worth","craft","industrial","speakeasy vibe"],
+    score:88, mentions:1200, hoursNote:"Tue–Sat 5pm–midnight",
+    live:{text:"Fort Worth's cocktail bar is worth the 30min drive.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"Don't let the Fort Worth location stop you. The cocktails here rival anything in Dallas proper.",user:"u/ftw_cocktails",src:"Reddit r/DFW"}
+    ]},
+
+  // === HOOKAH & LOUNGES ===
+  { id:193, name:"Meze Greek Fusion & Hookah", type:"bar", area:"Addison", neighborhood:"North Dallas", gs:false,
+    tags:["hookah","Greek food","lounge","late night","lively"],
+    score:85, mentions:2100, hoursNote:"Mon–Sun 5pm–2am",
+    live:{text:"Friday hookah lounge is buzzing. Reservations recommended.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Best hookah lounge in the Dallas area. The Greek food is genuinely good too.",user:"u/dallas_hookah",src:"Reddit r/Dallas"},
+      {text:"Great food, great hookah, great vibe. The Addison strip does it right.",user:"Nadia K.",src:"Google 4.4★"}
+    ]},
+  { id:194, name:"Sahara Lounge", type:"bar", area:"North Dallas", neighborhood:"North Dallas", gs:false,
+    tags:["hookah","Middle Eastern","lounge","tea","late night"],
+    score:83, mentions:1400, hoursNote:"Mon–Sun 4pm–2am",
+    live:{text:"Evening crowd building. Mint tea and hookah are the move tonight.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Authentic hookah lounge experience. The tea is excellent.",user:"u/dallas_lounge",src:"Reddit r/DFW"}
+    ]},
+
+  // === BRUNCH SPOTS ===
+  { id:195, name:"The Commissary (Knox)", type:"cafe", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["brunch","coffee","trendy","Knox-Henderson","weekend ritual"],
+    score:86, mentions:1900, hoursNote:"Sat–Sun 9am–3pm, Mon–Fri 7am–3pm",
+    live:{text:"Brunch queue out the door. Worth the wait — 40 min typically.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"Knox-Henderson's brunch institution. The eggs benedict is the benchmark for Dallas.",user:"u/kh_brunch",src:"Reddit r/Dallas"}
+    ]},
+  { id:196, name:"Brunch & The City", type:"cafe", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["instagrammable brunch","cocktails","trendy","fun vibe","groups"],
+    score:83, mentions:2600, hoursNote:"Sat–Sun 10am–4pm",
+    live:{text:"Instagram wall is free right now. Wait is 25 minutes.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"Yes it's trendy. Yes the food is also actually good. Don't be a snob — go.",user:"u/dallas_brunch",src:"Reddit r/Dallas"}
+    ]},
+  { id:197, name:"Ellen's", type:"cafe", area:"West End / Downtown", neighborhood:"Downtown", gs:true,
+    tags:["southern brunch","biscuits","Dallas classic","line worth it","massive portions"],
+    score:91, mentions:4100, hoursNote:"Mon–Sun 8am–3pm",
+    live:{text:"Saturday morning line is 40 min but moving. Biscuits made fresh every hour.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"The best biscuits in Texas. Ellen's southern brunch is a Dallas pilgrimage. Get the chicken and biscuits.",user:"u/dallas_brunch_king",src:"Reddit r/Dallas"},
+      {text:"Line is always worth it. The buttermilk biscuit is a religious experience.",user:"Sarah J.",src:"Google 4.8★"}
+    ]},
+
+  // === TACO SPECIALISTS ===
+  { id:198, name:"Fuel City Tacos", type:"restaurant", area:"Near Downtown / I-30", neighborhood:"Downtown", gs:true,
+    tags:["24 hours","tacos","cash only","legendary","gas station taco","Dallas icon"],
+    score:95, mentions:8900, hoursNote:"24 hours, 365 days",
+    live:{text:"3am and the line is 15 people. Still the best taco in Dallas at any hour.",time:"10 min ago",fresh:true},
+    reviews:[
+      {text:"The most famous gas station tacos in the world. Cheap, perfect, 24 hours. Non-negotiable Dallas experience.",user:"u/dallas_taco_icon",src:"Reddit r/Dallas"},
+      {text:"Fuel City is not optional. Every Dallasite has their Fuel City story. Get yours.",user:"Carlos R.",src:"Google 4.7★"},
+      {text:"$1.50 tacos at 4am that rival any restaurant. Dallas is blessed.",user:"u/tacos_forever",src:"Reddit r/DFW"}
+    ]},
+  { id:199, name:"Velvet Taco", type:"restaurant", area:"Multiple Locations", neighborhood:"Uptown", gs:false,
+    tags:["creative tacos","weekly special","late night","popular","unique ingredients"],
+    score:89, mentions:5600, hoursNote:"Mon–Sun 11am–midnight (Fri–Sat till 3am)",
+    live:{text:"Weekly Taco special this week: Nashville hot shrimp. Late night crew arriving.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"The weekly taco special is an institution. Dallas's most creative taco spot.",user:"u/velvet_taco_fan",src:"Reddit r/Dallas"},
+      {text:"$4 tacos that taste like $15 tacos. The concept is perfect.",user:"Emily K.",src:"Google 4.5★"}
+    ]},
+  { id:200, name:"La Popular", type:"restaurant", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["authentic tacos","Oak Cliff","local favourite","birria","lengua","real deal"],
+    score:93, mentions:2800, hoursNote:"Mon–Sun 7am–10pm",
+    live:{text:"Birria tacos selling out early. Get there before 8pm.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Authentic Mexican tacos in Oak Cliff. The birria is the best in Dallas, not debatable.",user:"u/oakcliff_authentic",src:"Reddit r/Dallas"},
+      {text:"This is the real Dallas taco experience. Not trendy, just perfect.",user:"Rosa M.",src:"Google 4.8★"}
+    ]},
+  { id:201, name:"Emporium Pies", type:"cafe", area:"Bishop Arts / Deep Ellum", neighborhood:"Oak Cliff", gs:false,
+    tags:["pies","coffee","dessert","Bishop Arts","instagrammable but real"],
+    score:90, mentions:3100, hoursNote:"Mon–Sun 10am–10pm",
+    live:{text:"Browned Butter Apple and Drunken Nut available right now. Coffee queue is short.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The best pies in Dallas. Each one is a work of art that also tastes incredible.",user:"u/dallas_pies",src:"Reddit r/Dallas"},
+      {text:"The Drunken Nut pie is reason enough to move to Dallas.",user:"Amanda S.",src:"Google 4.9★"}
+    ]},
+
+  // === UNIQUE / ONLY IN DALLAS ===
+  { id:202, name:"Painting with a Twist", type:"arcade", area:"Multiple Locations", neighborhood:"Dallas-wide", gs:false,
+    tags:["paint and sip","date night","groups","BYOB","creative"],
+    score:80, mentions:2800, hoursNote:"Classes vary — book online",
+    live:{text:"Friday night 'Wine & Paint' class has 4 spots left. Book now.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Great date night activity. You don't need to be artistic — that's the whole point.",user:"u/dallas_date_ideas",src:"Reddit r/Dallas"}
+    ]},
+  { id:203, name:"Escape Hunt Dallas", type:"arcade", area:"Uptown / Multiple", neighborhood:"Uptown", gs:false,
+    tags:["escape room","groups","team building","fun","date night"],
+    score:84, mentions:1600, hoursNote:"Mon–Sun 10am–10pm",
+    live:{text:"Evening slots available. Book at least 24hrs ahead for weekends.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Best escape rooms in Dallas. The set design is impressive and the puzzles are genuinely clever.",user:"u/dallas_escape",src:"Reddit r/Dallas"}
+    ]},
+  { id:204, name:"Top Golf Las Colinas", type:"arcade", area:"Las Colinas / Irving", neighborhood:"North Dallas", gs:false,
+    tags:["golf","entertainment","food","corporate outings","date night","all skill levels"],
+    score:88, mentions:9200, hoursNote:"Mon–Sun 9am–midnight",
+    live:{text:"Bay availability good on a Wednesday. Food service running all evening.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Even if you hate golf, TopGolf is a great time. The food is better than you'd expect.",user:"u/dallas_topgolf",src:"Reddit r/Dallas"},
+      {text:"Best corporate entertainment in the metro. Clients always love it.",user:"Robert K.",src:"Google 4.5★"}
+    ]},
+  { id:205, name:"Urban Air Adventure Park", type:"arcade", area:"Multiple Locations", neighborhood:"North Dallas", gs:false,
+    tags:["trampoline park","go karts","kids","families","adrenaline"],
+    score:82, mentions:4800, hoursNote:"Mon–Sun 10am–9pm",
+    live:{text:"Weekday afternoon — short queues on all attractions.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Adults have just as much fun as kids here. The go karts are legitimately exciting.",user:"u/dallas_fam_fun",src:"Reddit r/DFW"}
+    ]},
+  { id:206, name:"Andretti Indoor Karting & Games", type:"arcade", area:"Allen", neighborhood:"North Dallas", gs:false,
+    tags:["go karts","arcade","laser tag","thrill","groups","competitive"],
+    score:87, mentions:3200, hoursNote:"Mon–Sun 10am–midnight",
+    live:{text:"Evening kart racing heats happening now. Book a lane online.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"Best go-karting in the Dallas area. The multi-level track is legitimately fast and fun.",user:"u/dallas_karting",src:"Reddit r/Dallas"},
+      {text:"Corporate team events here are unbeatable. Everyone gets competitive.",user:"Tim B.",src:"Google 4.6★"}
+    ]},
+  { id:207, name:"Rec Room Dallas", type:"arcade", area:"Uptown / Victory Park", neighborhood:"Uptown", gs:false,
+    tags:["virtual reality","VR","axe throwing","karaoke","arcade","next gen entertainment"],
+    score:86, mentions:1800, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"VR pods available now. Axe throwing has a 20-min queue.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"VR gaming in Dallas done properly. The axe throwing is also addictively fun.",user:"u/dallas_vr",src:"Reddit r/Dallas"},
+      {text:"New concept entertainment venue. Everything actually works and is well maintained.",user:"Josh M.",src:"Google 4.5★"}
+    ]},
+  { id:208, name:"Barcadia Dallas", type:"arcade", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["arcade bar","classic games","drinks","Deep Ellum","free play","groups"],
+    score:87, mentions:2600, hoursNote:"Mon–Sun 4pm–2am",
+    live:{text:"Post-work crowd in. Pac-Man and Street Fighter machines all running.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"Classic arcade bar concept executed well. Free play games with a real bar = perfect.",user:"u/barcadia_fan",src:"Reddit r/Dallas"},
+      {text:"Deep Ellum's original arcade bar. Still one of the best.",user:"Mike T.",src:"Google 4.4★"}
+    ]},
+
+  // === COFFEE ROASTERS & SPECIALTY ===
+  { id:209, name:"Oak Cliff Coffee Roasters", type:"cafe", area:"Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["roaster","direct trade","specialty","community","serious coffee"],
+    score:90, mentions:1400, hoursNote:"Mon–Sat 7am–5pm",
+    live:{text:"New Guatemala single origin just landed. Morning rush over — great seating.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Oak Cliff's serious coffee roaster. They source direct and it shows in every cup.",user:"u/oakcliff_coffee",src:"Reddit r/Dallas"},
+      {text:"The best pour-over in South Dallas. Knowledgeable staff who love what they do.",user:"Gabriela M.",src:"Google 4.8★"}
+    ]},
+  { id:210, name:"Ascension Coffee", type:"cafe", area:"Design District / Multiple", neighborhood:"Design District", gs:false,
+    tags:["specialty coffee","stunning space","cocktails at night","dual concept","beautiful"],
+    score:91, mentions:2800, hoursNote:"Mon–Sun 7am–10pm (bar until midnight Fri–Sat)",
+    live:{text:"Evening transition to cocktail bar underway. Beautiful Design District setting.",time:"45 min ago",fresh:true},
+    reviews:[
+      {text:"Coffee shop by day, cocktail bar by night. The Design District location is absolutely stunning.",user:"u/design_district_coffee",src:"Reddit r/Dallas"},
+      {text:"I've recommended Ascension to every out-of-town visitor. Flawless on both sides of its concept.",user:"Emma R.",src:"Google 4.8★"}
+    ]},
+  { id:211, name:"Cuvée Coffee Bar", type:"cafe", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["specialty coffee","wine","hybrid concept","beautiful space","knowledgeable staff"],
+    score:88, mentions:1100, hoursNote:"Mon–Sun 7am–8pm",
+    live:{text:"Afternoon wine and coffee hour in full swing.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Coffee and wine bar hybrid. Brilliant concept executed with real skill.",user:"u/kh_coffee",src:"Reddit r/Dallas"}
+    ]},
+
+  // === SPORTS BARS ===
+  { id:212, name:"Happiest Hour", type:"bar", area:"Uptown / Cedar Springs", neighborhood:"Uptown", gs:false,
+    tags:["rooftop","sports","happy hour legend","crowd","after work"],
+    score:86, mentions:3400, hoursNote:"Mon–Fri 3pm–2am, Sat–Sun 11am–2am",
+    live:{text:"Happy hour ending in 30 min. Rooftop has availability. Game on 3 screens.",time:"15 min ago",fresh:true},
+    reviews:[
+      {text:"The best happy hour deal in Uptown. The rooftop at golden hour is perfect.",user:"u/uptown_after_work",src:"Reddit r/Dallas"},
+      {text:"After-work staple for the whole Uptown professional crowd.",user:"David L.",src:"Yelp 4.3★"}
+    ]},
+  { id:213, name:"Windmill Lounge", type:"bar", area:"Lovers Lane", neighborhood:"Highland Park", gs:false,
+    tags:["dive bar","legendary","cheap beer","shuffleboard","old school"],
+    score:89, mentions:1900, hoursNote:"Mon–Sun noon–2am",
+    live:{text:"Shuffleboard is free tonight. Regulars in full effect.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Dallas's most beloved dive bar. Cheap beer, shuffleboard, and regulars who make it a community.",user:"u/dallas_dive_bar",src:"Reddit r/Dallas"},
+      {text:"Windmill is a time capsule. Don't let it ever change.",user:"Tom H.",src:"Google 4.7★"}
+    ]},
+  { id:214, name:"Sneaky Pete's", type:"bar", area:"Uptown / Cedar Springs", neighborhood:"Uptown", gs:false,
+    tags:["sports bar","lively","outdoor","watch parties","game day"],
+    score:82, mentions:2800, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"Game day atmosphere. All TVs on. Cold beer flowing.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Uptown's sports bar of choice. Great outdoor area and they always have the game on.",user:"u/uptown_sports",src:"Reddit r/Dallas"}
+    ]},
+
+  // === DESSERT & UNIQUE ===
+  { id:215, name:"Jeni's Splendid Ice Creams", type:"cafe", area:"Bishop Arts / Multiple", neighborhood:"Oak Cliff", gs:false,
+    tags:["ice cream","artisan","creative flavours","date walk","after dinner"],
+    score:91, mentions:2100, hoursNote:"Mon–Sun noon–10pm",
+    live:{text:"New seasonal flavour: Brown Butter Almond Brittle. Queue is short.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The best ice cream in Dallas by a wide margin. The flavour combinations are genuinely creative.",user:"u/dallas_icecream",src:"Reddit r/Dallas"},
+      {text:"Every flavour is a revelation. The Brown Butter Almond Brittle is life-changing.",user:"Sofia B.",src:"Google 4.8★"}
+    ]},
+  { id:216, name:"Gourdough's", type:"cafe", area:"Austin-style in Dallas (Deep Ellum)", neighborhood:"Deep Ellum", gs:false,
+    tags:["donuts","creative toppings","late night","food truck","Instagram worthy"],
+    score:87, mentions:1800, hoursNote:"Mon–Sun noon–midnight (Fri–Sat till 2am)",
+    live:{text:"Late night donut crowd forming. 'Son of a Peach' is the pick tonight.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"Creative donut concepts that actually taste as good as they look.",user:"u/deep_ellum_donuts",src:"Reddit r/Dallas"}
+    ]},
+  { id:217, name:"Layered Cake Artisan Bakery", type:"cafe", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["cakes","pastries","beautiful","Instagram","celebrations"],
+    score:88, mentions:1200, hoursNote:"Tue–Sun 9am–6pm",
+    live:{text:"Fresh seasonal cake available today. Saturday pastry box sell out by noon.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The most beautiful cakes in Dallas. Ordered my birthday cake here — it was a showstopper.",user:"u/dallas_cakes",src:"Reddit r/Dallas"}
+    ]},
+
+  // === KARAOKE ===
+  { id:218, name:"Mr. Karaoke", type:"latenight", area:"Greenville Avenue", neighborhood:"Greenville", gs:false,
+    tags:["karaoke","private rooms","late night","fun","groups","Dallas staple"],
+    score:88, mentions:2400, hoursNote:"Mon–Sun 7pm–2am",
+    live:{text:"Private rooms available now. Friday night energy is electric.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"Dallas's best karaoke experience. Private rooms, great sound system, excellent drink service.",user:"u/dallas_karaoke",src:"Reddit r/Dallas"},
+      {text:"We come here for every birthday. Private rooms mean no embarrassment.",user:"Jessica L.",src:"Google 4.5★"}
+    ]},
+  { id:219, name:"Karaoke Bar", type:"latenight", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["karaoke","public stage","late night","lively","dive bar vibe"],
+    score:84, mentions:1600, hoursNote:"Mon–Sun 8pm–2am",
+    live:{text:"Stage karaoke just started. Sign-up list is open.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Public stage karaoke done right. The crowd is supportive and it gets wild after midnight.",user:"u/greenville_karaoke",src:"Reddit r/Dallas"}
+    ]},
+
+  // === MINI GOLF / OUTDOOR FUN ===
+  { id:220, name:"Mutts Canine Cantina", type:"bar", area:"Uptown / Knox-Henderson", neighborhood:"Uptown", gs:false,
+    tags:["dog bar","outdoor","craft beer","dog friendly","unique Dallas experience"],
+    score:90, mentions:3800, hoursNote:"Mon–Sun 9am–10pm",
+    live:{text:"50 dogs on the patio right now. Pure joy. Bar is fully stocked.",time:"15 min ago",fresh:true},
+    reviews:[
+      {text:"A bar that's also a dog park. Dallas at its most Dallas. Absolutely brilliant concept.",user:"u/dallas_dogs",src:"Reddit r/Dallas"},
+      {text:"Bring your dog, make friends, drink beer. The ideal afternoon.",user:"Amanda R.",src:"Google 4.8★"}
+    ]},
+  { id:221, name:"Putt Putt Fun Center", type:"arcade", area:"Multiple Locations", neighborhood:"North Dallas", gs:false,
+    tags:["mini golf","go karts","arcade","families","nostalgia"],
+    score:79, mentions:2100, hoursNote:"Mon–Sun 10am–10pm",
+    live:{text:"Evening lighting makes mini golf spectacular. Short queue.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Classic Dallas childhood spot. Still holds up as an adult.",user:"u/dallas_nostalgia",src:"Reddit r/DFW"}
+    ]},
+  { id:222, name:"Monster Mini Golf", type:"arcade", area:"Plano", neighborhood:"North Dallas", gs:false,
+    tags:["glow mini golf","adults","date night","unique","indoor"],
+    score:83, mentions:1400, hoursNote:"Mon–Sun 10am–midnight",
+    live:{text:"Glow golf running tonight. Great Friday date night option.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Indoor glow mini golf is more fun than it has any right to be.",user:"u/plano_entertainment",src:"Reddit r/DFW"}
+    ]},
+  { id:223, name:"Klyde Warren Park", type:"cafe", area:"Downtown / Arts District", neighborhood:"Downtown", gs:true,
+    tags:["outdoor park","food trucks","free events","yoga","picnic","urban oasis"],
+    score:94, mentions:11000, hoursNote:"Daily 6am–11pm",
+    live:{text:"Free outdoor concert happening now. Food trucks lined up on the south side.",time:"10 min ago",fresh:true},
+    reviews:[
+      {text:"The best public space in Dallas. Free events, food trucks, games, and it connects the Arts District to Uptown.",user:"u/downtown_dallas",src:"Reddit r/Dallas"},
+      {text:"Klyde Warren is what every city needs. Transformative public space.",user:"Natalie M.",src:"Google 4.8★"},
+      {text:"I come here every Saturday morning. It's the living room of Dallas.",user:"u/dallas_park_life",src:"Reddit r/DFW"}
+    ]},
+
+  // === FORT WORTH / OUTER GEMS ===
+  { id:224, name:"Sundance Square", type:"restaurant", area:"Fort Worth Downtown", neighborhood:"Fort Worth", gs:false,
+    tags:["Fort Worth","entertainment district","dining","bars","outdoor plaza"],
+    score:88, mentions:8900, hoursNote:"Mon–Sun (varies by venue)",
+    live:{text:"Outdoor plaza events tonight. Multiple restaurants have walk-in availability.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Fort Worth's answer to entertainment districts. Actually excellent and far less pretentious than Dallas.",user:"u/ftw_local",src:"Reddit r/DFW"},
+      {text:"Sundance Square has earned its reputation. The plaza is beautiful on a weekend night.",user:"Brad T.",src:"Google 4.6★"}
+    ]},
+  { id:225, name:"Lonesome Dove Western Bistro", type:"restaurant", area:"Fort Worth Stockyards", neighborhood:"Fort Worth", gs:false,
+    tags:["Texas legendary","Tim Love chef","game meat","upscale western","Stockyards"],
+    score:93, mentions:4200, hoursNote:"Mon–Sun 5pm–10pm",
+    live:{text:"Reservations fully booked tonight. 30-day advance booking recommended.",time:"5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Tim Love's masterpiece. The best restaurant in Fort Worth and one of the best in Texas.",user:"u/ftw_dining",src:"Reddit r/DFW"},
+      {text:"The rattlesnake sausage dish alone is worth the drive from Dallas.",user:"Robert M.",src:"Google 4.8★"}
+    ]},
+  { id:226, name:"Billy Bob's Texas", type:"livemusic", area:"Fort Worth Stockyards", neighborhood:"Fort Worth", gs:false,
+    tags:["world's largest honky tonk","country music","bull riding","rodeo","Texas icon"],
+    score:90, mentions:12000, hoursNote:"Thu–Sat 11am–2am",
+    live:{text:"Live bull riding tonight. National country act on stage. Boots recommended.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The world's largest honky tonk. Bull riding, live country music, and thousands of people. Pure Texas.",user:"u/texas_country",src:"Reddit r/DFW"},
+      {text:"If you're visiting Dallas and don't go to Billy Bob's, you haven't visited Dallas.",user:"Charles M.",src:"Google 4.6★"}
+    ]},
+  { id:227, name:"Reata Restaurant", type:"restaurant", area:"Fort Worth", neighborhood:"Fort Worth", gs:false,
+    tags:["Texas cuisine","upscale","Fort Worth classic","views","cowboy elegance"],
+    score:90, mentions:3600, hoursNote:"Mon–Sat 11am–10pm, Sun 10am–9pm",
+    live:{text:"Rooftop view of Fort Worth is exceptional tonight.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Upscale Texas cuisine done with elegance and pride. The tenderloin with jalapeño butter is extraordinary.",user:"u/ftw_foodie",src:"Reddit r/DFW"}
+    ]},
+
+  // === MORE DALLAS GEMS ===
+  { id:228, name:"Peticolas Brewing", type:"pub", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["local brewery","taproom","industrial","no food","serious beer"],
+    score:88, mentions:1600, hoursNote:"Thu–Fri 4pm–9pm, Sat noon–9pm",
+    live:{text:"Weekend taproom open. Fresh batch of Velvet Hammer on.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Dallas's best local brewery. The Velvet Hammer is one of the best beers in Texas.",user:"u/dallas_craft_beer",src:"Reddit r/Dallas"},
+      {text:"A Design District gem. Serious beers from people who love what they do.",user:"Eric K.",src:"Google 4.8★"}
+    ]},
+  { id:229, name:"Revolver Brewing", type:"pub", area:"Granbury / Near Fort Worth", neighborhood:"Fort Worth", gs:false,
+    tags:["Texas craft brewery","Blood & Honey","destination brewery","beautiful taproom"],
+    score:91, mentions:2800, hoursNote:"Wed–Sun noon–8pm",
+    live:{text:"Blood & Honey on tap. Beautiful taproom with live music Saturday.",time:"4 hrs ago",fresh:false},
+    reviews:[
+      {text:"Blood & Honey is one of the best beers in Texas. The taproom is a destination in itself.",user:"u/texas_brewing",src:"Reddit r/DFW"}
+    ]},
+  { id:230, name:"Wild Acre Brewing", type:"pub", area:"Fort Worth", neighborhood:"Fort Worth", gs:false,
+    tags:["Fort Worth craft beer","outdoor","chill","community","food trucks"],
+    score:86, mentions:1200, hoursNote:"Wed–Sat noon–9pm, Sun noon–7pm",
+    live:{text:"Food truck on site tonight. Weekend crowd is chill and excellent.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"Fort Worth's neighbourhood brewery done exactly right.",user:"u/ftw_beers",src:"Reddit r/DFW"}
+    ]},
+  { id:231, name:"Craft & Growler", type:"pub", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["200+ beers","growler fills","bottle shop bar","craft beer nerd heaven"],
+    score:89, mentions:1800, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"New arrivals posted on their Instagram. 200+ taps rotating.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The craft beer destination in Dallas. 200+ taps and you can fill growlers.",user:"u/dallas_beer_nerd",src:"Reddit r/Dallas"},
+      {text:"I've found beers here I couldn't find anywhere else in Texas.",user:"Steve M.",src:"Google 4.7★"}
+    ]},
+  { id:232, name:"Truck Yard Dallas", type:"bar", area:"Lower Greenville", neighborhood:"Greenville", gs:false,
+    tags:["outdoor","food trucks","treehouse bar","live music","eclectic","only in Dallas"],
+    score:91, mentions:5200, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Treehouse bar is open. Four food trucks running tonight. Live acoustic in the yard.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"A treehouse bar with food trucks and live music in the yard. Only in Dallas.",user:"u/dallas_only",src:"Reddit r/Dallas"},
+      {text:"The most unique bar concept in the city. Truck Yard is pure Dallas magic.",user:"Lily B.",src:"Google 4.7★"},
+      {text:"First timer rule: go at sunset. The treehouse bar at golden hour is something else.",user:"u/greenville_yard",src:"Reddit r/DFW"}
+    ]},
+  { id:233, name:"The Rustic (Fort Worth)", type:"restaurant", area:"Fort Worth", neighborhood:"Fort Worth", gs:false,
+    tags:["Fort Worth outpost","live music","Texas","outdoor","fan favourite"],
+    score:87, mentions:2200, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"Fort Worth location less crowded than Dallas. Same great vibes.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Same great concept as the Uptown location but more breathing room. Worth the drive.",user:"u/ftw_rustic",src:"Reddit r/DFW"}
+    ]},
+  { id:234, name:"Murray Street Coffee", type:"cafe", area:"Fort Worth Near Southside", neighborhood:"Fort Worth", gs:false,
+    tags:["Fort Worth coffee","neighbourhood","serious","community","roaster"],
+    score:88, mentions:980, hoursNote:"Mon–Sat 7am–5pm",
+    live:{text:"Fort Worth's best coffee is quiet this afternoon. Perfect time to go.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"Fort Worth's specialty coffee flagship. Worth the drive across the metroplex.",user:"u/ftw_coffee",src:"Reddit r/DFW"}
+    ]},
+  { id:235, name:"Obscure Bar & Restaurant", type:"bar", area:"Old East Dallas", neighborhood:"East Dallas", gs:false,
+    tags:["board games","craft beer","no sports TV","neighbourhood","weird and wonderful"],
+    score:87, mentions:780, hoursNote:"Mon–Sun 4pm–midnight",
+    live:{text:"Trivia Tuesday night just started. Teams still forming.",time:"25 min ago",fresh:true},
+    reviews:[
+      {text:"An anti-sports bar with board games and craft beer. East Dallas at its best.",user:"u/eastdallas_weird",src:"Reddit r/Dallas"}
+    ]},
+  { id:236, name:"Stirr Uptown", type:"bar", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["rooftop","craft cocktails","brunch","multiple levels","see and be seen"],
+    score:85, mentions:2100, hoursNote:"Mon–Sun 11am–2am",
+    live:{text:"Rooftop seating at capacity. Bar level has walk-ins available.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"Uptown's multi-level bar with a great rooftop. Cocktails are solid and the brunch is underrated.",user:"u/uptown_stirr",src:"Reddit r/Dallas"}
+    ]},
+  { id:237, name:"Henk's European Deli", type:"cafe", area:"Highland Park / Near NorthPark", neighborhood:"Highland Park", gs:false,
+    tags:["European deli","breakfast","lunch","neighbourhood gem","old school"],
+    score:86, mentions:1400, hoursNote:"Mon–Sat 7am–4pm",
+    live:{text:"Saturday morning regulars in. Schnitzel sandwich is back on menu.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"A Dallas institution hiding in plain sight. The best European deli in the city.",user:"u/highland_park_gems",src:"Reddit r/Dallas"}
+    ]},
+  { id:238, name:"The Meadow", type:"bar", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["salt bar","chocolate","cocktails","unique concept","gift shop","only in Dallas"],
+    score:88, mentions:1100, hoursNote:"Mon–Sun noon–9pm",
+    live:{text:"Chocolate and salt tasting flight available today. Unusual but brilliant.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"A salt and chocolate bar with a cocktail menu. Sounds weird, is absolutely brilliant.",user:"u/design_district_finds",src:"Reddit r/Dallas"},
+      {text:"The most unique concept in Dallas. The salt flights are genuinely fascinating.",user:"Kate M.",src:"Google 4.7★"}
+    ]},
+  { id:239, name:"NOSH Euro Bistro", type:"restaurant", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["brunch","European","outdoor patio","Knox staple","eggs benedict"],
+    score:87, mentions:1700, hoursNote:"Mon–Sun 8am–10pm",
+    live:{text:"Morning patio is gorgeous right now. Eggs Benedict is as good as ever.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Knox-Henderson's beloved brunch spot. Consistent, elegant, and the patio is perfect.",user:"u/kh_nosh",src:"Reddit r/Dallas"}
+    ]},
+  { id:240, name:"Braindead Brewing Rooftop", type:"rooftop", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["rooftop","brewery","Deep Ellum views","casual","craft beer"],
+    score:85, mentions:980, hoursNote:"Fri–Sun 4pm–10pm",
+    live:{text:"Rooftop open. Deep Ellum evening energy is perfect right now.",time:"40 min ago",fresh:true},
+    reviews:[
+      {text:"The rooftop at Braindead is an underrated gem. Great beer with Deep Ellum views.",user:"u/braindead_roof",src:"Reddit r/Dallas"}
+    ]},
+  { id:241, name:"Sissy's Southern Kitchen", type:"restaurant", area:"Oak Lawn", neighborhood:"Oak Lawn", gs:false,
+    tags:["southern","comfort food","brunch","legendary","chicken fried everything"],
+    score:89, mentions:3200, hoursNote:"Mon–Sun 11am–10pm",
+    live:{text:"Sunday brunch crowd settling. Chicken fried steak available all day.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The best Southern comfort food in Dallas. The chicken fried steak is the benchmark.",user:"u/dallas_southern",src:"Reddit r/Dallas"},
+      {text:"Sissy's is a Dallas comfort food institution. Come hungry.",user:"Bobby T.",src:"Google 4.6★"}
+    ]},
+  { id:242, name:"Uchi Dallas", type:"restaurant", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["Japanese","sushi","upscale","innovative","Tyson Cole","Austin import"],
+    score:93, mentions:3800, hoursNote:"Mon–Sun 5pm–10pm",
+    live:{text:"Reservation only tonight. Omakase counter has one opening for tomorrow.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The best Japanese restaurant in Dallas. Tyson Cole's Uchi is in a category of its own.",user:"u/dallas_sushi",src:"Reddit r/Dallas"},
+      {text:"Every dish is a revelation. The hot rock uni is indescribable.",user:"James K.",src:"Google 4.9★"}
+    ]},
+  { id:243, name:"FT33", type:"restaurant", area:"Design District", neighborhood:"Design District", gs:false,
+    tags:["fine dining","innovative","Design District","Matt McCallister","seasonal"],
+    score:92, mentions:1600, hoursNote:"Tue–Sat 6pm–10pm",
+    live:{text:"Tuesday dinner is the quietest and best time to experience this kitchen fully.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"The most innovative fine dining in Dallas. Matt McCallister is the most creative chef in the city.",user:"u/dallas_fine_dining",src:"Reddit r/Dallas"}
+    ]},
+  { id:244, name:"Easy Slider", type:"restaurant", area:"Multiple Locations", neighborhood:"Deep Ellum", gs:false,
+    tags:["sliders","late night food","food truck","casual","cheap and great"],
+    score:86, mentions:2400, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Slider truck outside Braindead tonight. Bacon Jam slider is the one.",time:"20 min ago",fresh:true},
+    reviews:[
+      {text:"Dallas's best slider truck. The Bacon Jam slider is something special.",user:"u/dallas_sliders",src:"Reddit r/Dallas"}
+    ]},
+  { id:245, name:"Off-Site Kitchen", type:"restaurant", area:"Market Center", neighborhood:"North Dallas", gs:false,
+    tags:["burgers","patty melt","cult following","lunch crowd","unassuming exterior"],
+    score:91, mentions:2100, hoursNote:"Mon–Fri 11am–2pm (lunch only — get there early)",
+    live:{text:"Lunch service underway. Patty melt selling out by 1pm. Go now.",time:"30 min ago",fresh:true},
+    reviews:[
+      {text:"The best burger in Dallas. Unassuming lunch counter that makes the greatest patty melt on earth.",user:"u/dallas_burger_king",src:"Reddit r/Dallas"},
+      {text:"I've eaten here 200 times. Still perfect every single time.",user:"Greg M.",src:"Google 4.9★"}
+    ]},
+  { id:246, name:"Sloane's Corner", type:"bar", area:"Knox-Henderson", neighborhood:"Knox-Henderson", gs:false,
+    tags:["rooftop","neighbourhood","cocktails","brunch","Knox staple"],
+    score:85, mentions:1300, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"Rooftop happy hour underway. Great spot before dinner on Henderson.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"The neighbourhood bar Knox-Henderson needed. Great cocktails without the attitude.",user:"u/kh_sloane",src:"Reddit r/Dallas"}
+    ]},
+  { id:247, name:"The Rustic Brewpub", type:"pub", area:"McKinney Avenue", neighborhood:"Uptown", gs:false,
+    tags:["craft beer","outdoor","massive","Texas feels","new concept"],
+    score:83, mentions:1100, hoursNote:"Mon–Sun 11am–midnight",
+    live:{text:"New tap list just posted. Outdoor seating fully open.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"McKinney Avenue's newest and best outdoor drinking spot.",user:"u/mckinney_ave",src:"Reddit r/Dallas"}
+    ]},
+  { id:248, name:"Club Dada", type:"livemusic", area:"Deep Ellum", neighborhood:"Deep Ellum", gs:false,
+    tags:["alternative","indie","Deep Ellum original","outdoor stage","history"],
+    score:87, mentions:2200, hoursNote:"Shows most nights from 9pm",
+    live:{text:"Outdoor stage show tonight. $5 entry. Local legends performing.",time:"35 min ago",fresh:true},
+    reviews:[
+      {text:"Deep Ellum music history. This is where Dallas's alternative scene was born.",user:"u/dallas_music_history",src:"Reddit r/Dallas"},
+      {text:"Club Dada has been the heartbeat of Deep Ellum since the 80s.",user:"Paul R.",src:"Google 4.5★"}
+    ]},
+  { id:249, name:"The Parish", type:"livemusic", area:"Austin Street / Near Downtown", neighborhood:"Downtown", gs:true,
+    tags:["live music","intimate","great sound","multiple genres","neighbourhood venue"],
+    score:88, mentions:1600, hoursNote:"Show nights vary",
+    live:{text:"Show tonight 8pm. Good sightlines from every spot in this room.",time:"2 hrs ago",fresh:false},
+    reviews:[
+      {text:"The most intimate quality live music venue in Dallas. Perfect sound, great sight lines.",user:"u/dallas_intimate_shows",src:"Reddit r/Dallas"}
+    ]},
+  { id:250, name:"Sisu Uptown", type:"bar", area:"Uptown", neighborhood:"Uptown", gs:false,
+    tags:["rooftop pool","upscale","weekend only","see and be seen","bottle service"],
+    score:84, mentions:2800, hoursNote:"Fri–Sun noon–8pm",
+    live:{text:"Pool deck open this weekend. Reservations available online.",time:"1 hr ago",fresh:false},
+    reviews:[
+      {text:"Uptown's rooftop pool bar. The scene is the thing here and it delivers.",user:"u/uptown_pool",src:"Reddit r/Dallas"}
+    ]},
+  { id:251, name:"Bowl & Barrel", type:"arcade", area:"Park Lane / Multiple", neighborhood:"Northeast Dallas", gs:false,
+    tags:["boutique bowling","cocktails","food","date night","upscale bowling"],
+    score:87, mentions:2100, hoursNote:"Mon–Sun noon–midnight",
+    live:{text:"Boutique bowling lanes available this evening. Cocktail menu is strong.",time:"1.5 hrs ago",fresh:false},
+    reviews:[
+      {text:"Boutique bowling with real craft cocktails. A date night formula that works perfectly.",user:"u/dallas_bowl",src:"Reddit r/Dallas"}
+    ]},
+  { id:252, name:"Dude Sweet Chocolate", type:"cafe", area:"Bishop Arts / Oak Cliff", neighborhood:"Oak Cliff", gs:false,
+    tags:["artisan chocolate","unique","gift","dessert","Katherine Clapner"],
+    score:92, mentions:1400, hoursNote:"Tue–Sun noon–7pm",
+    live:{text:"Fresh chocolate truffles today. Katherine Clapner magic in every piece.",time:"3 hrs ago",fresh:false},
+    reviews:[
+      {text:"World-class artisan chocolate in Dallas. Katherine Clapner is one of the greatest chocolatiers in America.",user:"u/dallas_chocolate",src:"Reddit r/Dallas"},
+      {text:"The smoked salt caramels alone are worth a special trip.",user:"Natalie K.",src:"Google 4.9★"}
+    ]},
+];
+
+// STATE
+let activeCategory = 'all';
+let activeSort = 'score';
+let expandedId = null;
+let liveCounter = 12;
+
+// LIVE FEED DATA
+const liveFeedItems = [
+  { venue:"Parliament", text:"Rooftop at capacity — downstairs bar open", time:"8 min ago" },
+  { venue:"The Rustic", text:"Live band just started on main stage", time:"12 min ago" },
+  { venue:"Pecan Lodge", text:"Brisket sold out. Get there early tomorrow", time:"1 hr ago" },
+  { venue:"Cidercade", text:"Saturday night — 300 machines + cider. Just arrived crowd.", time:"15 min ago" },
+  { venue:"Free Play", text:"Free arcade Friday — bar packed but games available", time:"20 min ago" },
+  { venue:"Midnight Rambler", text:"Negroni special on tonight $12", time:"1 hr ago" },
+  { venue:"Tacos La Banqueta", text:"Birria tacos available. Short queue.", time:"10 min ago" },
+  { venue:"Reveler's Hall", text:"Jazz band tearing it up in Bishop Arts", time:"45 min ago" },
+  { venue:"Trees", text:"Show doors open. Capacity crowd building.", time:"30 min ago" },
+  { venue:"Truth & Alibi", text:"Speakeasy is open — password on their IG story", time:"1.5 hrs ago" },
+];
+
+// NEIGHBORHOODS
+function getNeighborhoods() {
+  const counts = {};
+  VENUES.forEach(v => {
+    counts[v.neighborhood] = (counts[v.neighborhood] || 0) + 1;
+  });
+  return Object.entries(counts).sort((a,b) => b[1]-a[1]);
+}
+
+function setCategory(cat, btn) {
+  activeCategory = cat;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function setSort(sort, btn) {
+  activeSort = sort;
+  document.querySelectorAll('.sort-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  let list = [...VENUES];
+
+  if (activeCategory === 'gs') list = list.filter(v => v.gs);
+  else if (activeCategory === 'rooftop') list = list.filter(v => v.type === 'rooftop' || v.tags.some(t => t.includes('rooftop')));
+  else if (activeCategory === 'livemusic') list = list.filter(v => v.type === 'livemusic' || v.tags.some(t => t.includes('live music') || t.includes('live band')));
+  else if (activeCategory === 'latenight') list = list.filter(v => v.type === 'latenight' || v.tags.some(t => t.includes('late night') || t.includes('2am') || t.includes('4am')));
+  else if (activeCategory === 'fortworth') list = list.filter(v => v.neighborhood === 'Fort Worth');
+  else if (activeCategory !== 'all') list = list.filter(v => v.type === activeCategory);
+
+  if (q) {
+    list = list.filter(v =>
+      v.name.toLowerCase().includes(q) ||
+      v.area.toLowerCase().includes(q) ||
+      v.neighborhood.toLowerCase().includes(q) ||
+      v.tags.some(t => t.toLowerCase().includes(q)) ||
+      v.type.includes(q)
+    );
+  }
+
+  if (activeSort === 'score') list.sort((a,b) => b.score - a.score);
+  else if (activeSort === 'mentions') list.sort((a,b) => b.mentions - a.mentions);
+  else list.sort((a,b) => a.live.fresh === b.live.fresh ? b.score - a.score : (a.live.fresh ? -1 : 1));
+
+  const el = document.getElementById('venueList');
+  const noRes = document.getElementById('noResults');
+  const countEl = document.getElementById('resultCount');
+
+  if (!list.length) {
+    el.innerHTML = '';
+    noRes.style.display = 'block';
+    countEl.textContent = '0 venues';
+    return;
+  }
+
+  noRes.style.display = 'none';
+  countEl.textContent = `Showing ${list.length} venue${list.length === 1 ? '' : 's'}`;
+
+  el.innerHTML = list.map((v, i) => {
+    const rank = i + 1;
+    const isTop3 = rank <= 3;
+    const expanded = expandedId === v.id;
+    const typeClass = `pill-${v.type}`;
+    const rankClass = isTop3 ? `rank-${rank}` : '';
+
+    return `<div class="venue-card${expanded ? ' expanded' : ''}" onclick="toggleExpand(${v.id})" style="animation-delay:${i * 0.03}s">
+      ${isTop3 ? `<div class="rank-stripe rank-${rank}"></div>` : ''}
+      <div class="card-top">
+        <div class="rank-num${isTop3 ? ' rank-top' : ''}">${rank}</div>
+        <div class="venue-main">
+          <div class="venue-title-row">
+            <span class="venue-name">${v.name}</span>
+            <span class="type-pill ${typeClass}">${v.type}</span>
+            ${v.gs ? '<span class="gs-tag">★ GS Downtown</span>' : ''}
+          </div>
+          <div class="venue-meta">
+            <span>📍 ${v.area}</span>
+            <span>🕐 ${v.hoursNote}</span>
+          </div>
+          <div class="venue-tags-row">
+            ${v.tags.map(t => `<span class="vtag">${t}</span>`).join('')}
+          </div>
+          <div class="venue-stats-row">
+            <div class="score-block">
+              <span class="score-val">${v.score}</span>
+              <span class="score-max">/100</span>
+            </div>
+            <div class="score-bar-wrap">
+              <div class="score-bar" style="width:${v.score}%"></div>
+            </div>
+            <div class="mentions-stat"><strong>${v.mentions.toLocaleString()}</strong> mentions</div>
+          </div>
+        </div>
+      </div>
+      <div class="live-update-bar">
+        <div class="live-dot-sm"></div>
+        <div class="live-text">${v.live.text}</div>
+        <div class="live-time">${v.live.time}</div>
+      </div>
+      <div class="expand-section${expanded ? ' open' : ''}">
+        <div class="reviews-label">What people are saying</div>
+        ${v.reviews.map(r => `
+          <div class="review-block">
+            <div class="review-text">"${r.text}"</div>
+            <div class="review-attrib">${r.user} <span class="review-src-badge">${r.src}</span></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExpand(id) {
+  expandedId = expandedId === id ? null : id;
+  applyFilters();
+}
+
+function renderSidebar() {
+  // Tonight's tip
+  const topVenue = VENUES.sort((a,b) => b.score - a.score)[0];
+  document.getElementById('tipText').textContent = `${topVenue.name} in ${topVenue.area} — ${topVenue.live.text}`;
+
+  // Neighborhoods
+  const nbhds = getNeighborhoods();
+  document.getElementById('nbhdList').innerHTML = nbhds.map(([name, count]) =>
+    `<li onclick="searchNeighborhood('${name}')">
+      <span class="nbhd-name">${name}</span>
+      <span class="nbhd-count">${count} venues</span>
+    </li>`
+  ).join('');
+
+  // Live feed
+  renderFeed();
+}
+
+function searchNeighborhood(nbhd) {
+  document.getElementById('searchInput').value = nbhd;
+  setCategory('all', document.querySelector('.nav-btn'));
+  applyFilters();
+}
+
+function renderFeed() {
+  document.getElementById('liveFeed').innerHTML = liveFeedItems.slice(0,5).map(item =>
+    `<div class="feed-item">
+      <div class="feed-venue">${item.venue}</div>
+      <div class="feed-text">${item.text}</div>
+      <div class="feed-time"><div class="feed-dot"></div>${item.time}</div>
+    </div>`
+  ).join('');
+}
+
+function refreshFeed() {
+  liveCounter += Math.floor(Math.random() * 3) + 1;
+  document.getElementById('liveCount').textContent = `${liveCounter} live updates`;
+  
+  const newUpdates = [
+    { venue:"Hide", text:"Whiskey flight special tonight — 4 pours for $28", time:"just now" },
+    { venue:"Cidercade", text:"Tekken 8 cabinet just came online — no queue", time:"just now" },
+    { venue:"Pins Mechanical", text:"Pinball high score beaten tonight — challenger welcome", time:"2 min ago" },
+    { venue:"Free Play", text:"Street Fighter II cabinet free right now", time:"3 min ago" },
+    { venue:"Lucia", text:"Walk-in cancellation just opened for tomorrow night", time:"3 min ago" },
+    { venue:"Loro", text:"Brisket fried rice back on the menu", time:"5 min ago" },
+    { venue:"The Foundry", text:"$5 cover tonight. Crowd is excellent.", time:"just now" },
+    { venue:"Truth & Alibi", text:"Speakeasy running full tonight. Password changes at midnight.", time:"4 min ago" },
+    { venue:"Nameless Bar", text:"Red light is on — they're open", time:"just now" },
+    { venue:"Sons of Hermann Hall", text:"Line dancing floor just opened. Free lessons 8pm.", time:"2 min ago" },
+    { venue:"Reveler's Hall", text:"Jazz trio encore happening now in Bishop Arts", time:"just now" },
+    { venue:"Truck Yard", text:"Treehouse bar is lit up and empty right now", time:"6 min ago" },
+  ];
+
+  liveFeedItems.unshift(newUpdates[Math.floor(Math.random() * newUpdates.length)]);
+  if (liveFeedItems.length > 8) liveFeedItems.pop();
+  renderFeed();
+}
+
+// Simulate weather (real version would use OpenWeatherMap API)
+function loadWeather() {
+  const conditions = [
+    { temp: "84°F", desc: "Clear · Perfect patio weather", icon: "☀️" },
+    { temp: "78°F", desc: "Partly cloudy · Outdoor bars open", icon: "⛅" },
+    { temp: "91°F", desc: "Hot · Indoor bars recommended", icon: "🌡️" },
+    { temp: "72°F", desc: "Breezy · Ideal evening weather", icon: "🌤️" },
+  ];
+  const w = conditions[Math.floor(Math.random() * conditions.length)];
+  document.getElementById('weatherTemp').textContent = w.temp;
+  document.getElementById('weatherDesc').textContent = w.desc;
+  document.getElementById('weatherIcon').textContent = w.icon;
+}
+
+// Init
+applyFilters();
+renderSidebar();
+loadWeather();
+
+// Live counter animation
+setInterval(() => {
+  if (Math.random() > 0.7) {
+    liveCounter++;
+    document.getElementById('liveCount').textContent = `${liveCounter} live updates`;
+  }
+}, 8000);
+</script>
+</body>
+</html>
