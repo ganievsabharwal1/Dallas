@@ -694,13 +694,31 @@
   /* MOBILE */
   @media (max-width: 768px) {
     .layout { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    .masthead { flex-wrap: wrap; padding: 0.75rem 1rem; gap: 8px; }
-    .masthead-center { padding: 0; order: 3; width: 100%; }
-    .masthead-right { border-left: none; padding-left: 0; }
-    .main-col { padding: 1rem; border: none; }
-    .sort-bar { padding: 0.5rem 1rem; flex-wrap: wrap; gap: 8px; }
-    .sec-nav { padding: 0 1rem; }
+    .sidebar { display: block; padding: 0.75rem; border-top: 2px solid var(--ink); }
+    .masthead { flex-wrap: wrap; padding: 0.75rem 1rem; gap: 6px; }
+    .masthead-left { border-right: none; padding-right: 0; }
+    .logo { font-size: 32px; }
+    .masthead-center { padding: 0; order: 3; width: 100%; flex: none; }
+    .masthead-center input { font-size: 16px; }
+    .masthead-right { border-left: none; padding-left: 0.5rem; }
+    .main-col { padding: 0.75rem; border: none; }
+    .sort-bar { padding: 0.5rem 0.75rem; flex-wrap: wrap; gap: 6px; }
+    .sort-options { gap: 4px; flex-wrap: wrap; }
+    .sort-opt { font-size: 10px; padding: 4px 8px; }
+    .sec-nav { padding: 0 0.75rem; }
+    .venue-card { padding: 1rem; }
+    .venue-name { font-size: 20px; }
+    .score-val { font-size: 24px; }
+    .deploy-banner { padding: 10px 1rem; }
+    .deploy-steps { display: none; }
+    .footer { padding: 0.75rem 1rem; }
+    .footer-meta:last-child { display: none; }
+    .mobile-panel-toggle { width: 100%; padding: 12px 16px; background: var(--cream); border: 1.5px solid var(--border); font-family: Bebas Neue, sans-serif; font-size: 16px; letter-spacing: 2px; color: var(--ink); text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .mobile-panel-content { display: none; padding: 12px; background: var(--paper); border: 1px solid var(--border); border-top: none; margin-bottom: 10px; }
+    .mobile-panel-content.open { display: block; }
+    .sidebar-section { margin-bottom: 0; }
+    .neighborhood-list li { padding: 9px 0; }
+    .nbhd-name { font-size: 14px; }
   }
 
   /* FOOTER */
@@ -761,6 +779,28 @@
     padding: 4px 10px;
     border: 1px solid rgba(255,255,255,0.3);
     color: var(--amber-light);
+  }
+
+  /* Mobile panel toggles look like headings on desktop */
+  @media (min-width: 769px) {
+    .mobile-panel-toggle {
+      width: 100%;
+      padding: 0;
+      background: none;
+      border: none;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 6px;
+      margin-bottom: 1rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: var(--ink);
+      text-align: left;
+      cursor: default;
+      display: block;
+    }
+    .mobile-panel-toggle span:last-child { display: none; }
+    .mobile-panel-content { display: block !important; padding: 0; background: none; border: none; margin-bottom: 0; }
   }
 </style>
 </head>
@@ -836,7 +876,8 @@
   </main>
 
   <aside class="sidebar">
-    <!-- TONIGHT TIP -->
+
+    <!-- TONIGHT TIP — always visible -->
     <div class="sidebar-section">
       <div class="tip-box" id="tonightTip">
         <div class="tip-label">Tonight's Pick</div>
@@ -844,7 +885,7 @@
       </div>
     </div>
 
-    <!-- WEATHER -->
+    <!-- WEATHER — always visible -->
     <div class="sidebar-section">
       <div class="sidebar-heading">Dallas Now</div>
       <div class="weather-box">
@@ -856,18 +897,27 @@
       </div>
     </div>
 
-    <!-- LIVE FEED -->
+    <!-- LIVE FEED — collapsible on mobile -->
     <div class="sidebar-section">
-      <div class="sidebar-heading">Live Updates</div>
-      <div class="update-feed" id="liveFeed"></div>
-      <button class="refresh-btn" onclick="refreshFeed()">↻ Refresh Feed</button>
+      <button class="mobile-panel-toggle" onclick="togglePanel('livepanel',this)" aria-expanded="true">
+        <span>Live Updates</span><span id="livepanel-arrow">▲</span>
+      </button>
+      <div class="mobile-panel-content open" id="livepanel">
+        <div class="update-feed" id="liveFeed"></div>
+        <button class="refresh-btn" onclick="refreshFeed()" style="margin-top:10px">↻ Refresh Feed</button>
+      </div>
     </div>
 
-    <!-- NEIGHBORHOODS -->
+    <!-- NEIGHBORHOODS — collapsible on mobile -->
     <div class="sidebar-section">
-      <div class="sidebar-heading">By Neighborhood</div>
-      <ul class="neighborhood-list" id="nbhdList"></ul>
+      <button class="mobile-panel-toggle" onclick="togglePanel('nbhdpanel',this)" aria-expanded="false">
+        <span>By Neighborhood</span><span id="nbhdpanel-arrow">▼</span>
+      </button>
+      <div class="mobile-panel-content" id="nbhdpanel">
+        <ul class="neighborhood-list" id="nbhdList"></ul>
+      </div>
     </div>
+
   </aside>
 </div>
 
@@ -3065,6 +3115,93 @@ function loadWeather() {
   document.getElementById('weatherIcon').textContent = w.icon;
 }
 
+// Toggle mobile panels
+function togglePanel(id, btn) {
+  const panel = document.getElementById(id);
+  const arrow = document.getElementById(id + '-arrow');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open', !isOpen);
+  if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
+  btn.setAttribute('aria-expanded', String(!isOpen));
+}
+
+// Floating refresh venues
+function refreshVenues() {
+  const btn = document.getElementById('floatRefreshBtn');
+  btn.textContent = '↻ Updating...';
+  btn.style.opacity = '0.6';
+  // Simulate a live refresh — in production this would re-fetch API
+  const randomLive = [
+    "Just walked in — good vibe tonight",
+    "Kitchen closing in 30 min",
+    "Just got quiet — easy walk-in now",
+    "Live music just started",
+    "Happy hour extended till 8pm",
+    "Patio now open, great weather",
+    "Shorter queue than usual right now",
+    "Staff just confirmed late kitchen open",
+    "New cocktail special just announced",
+    "DJ just started — floor filling up",
+  ];
+  // Update 3-5 random venues with fresh timestamps
+  const indices = [];
+  while (indices.length < 4) {
+    const r = Math.floor(Math.random() * VENUES.length);
+    if (!indices.includes(r)) indices.push(r);
+  }
+  indices.forEach(i => {
+    VENUES[i].live.text = randomLive[Math.floor(Math.random() * randomLive.length)];
+    VENUES[i].live.time = 'just now';
+    VENUES[i].live.fresh = true;
+  });
+  liveCounter += Math.floor(Math.random() * 5) + 2;
+  document.getElementById('liveCount').textContent = `${liveCounter} live updates`;
+  setTimeout(() => {
+    applyFilters();
+    renderSidebar();
+    btn.textContent = '↻ Refresh';
+    btn.style.opacity = '1';
+    // Flash the button green briefly
+    btn.style.background = '#1a6b3a';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#1a6b3a';
+    setTimeout(() => {
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1200);
+  }, 800);
+}
+
+// Auto live update every 45 seconds
+setInterval(() => {
+  const liveTextsAuto = [
+    "Getting busier now",
+    "Walk-ins available",
+    "Just opened a new section",
+    "Quiet tonight — easy seating",
+    "Band starting soon",
+    "Happy hour on now",
+    "Short queue at the moment",
+    "Kitchen open late tonight",
+  ];
+  const idx = Math.floor(Math.random() * VENUES.length);
+  VENUES[idx].live.time = 'just now';
+  VENUES[idx].live.text = liveTextsAuto[Math.floor(Math.random() * liveTextsAuto.length)];
+  VENUES[idx].live.fresh = true;
+  liveCounter++;
+  document.getElementById('liveCount').textContent = `${liveCounter} live updates`;
+  // Re-render only if this venue is currently visible
+  applyFilters();
+}, 45000);
+
+// Tick live times (age "just now" → "2 min ago" etc)
+setInterval(() => {
+  document.querySelectorAll('.live-time').forEach(el => {
+    if (el.textContent === 'just now') el.textContent = '1 min ago';
+  });
+}, 60000);
+
 // Init
 applyFilters();
 renderSidebar();
@@ -3078,5 +3215,24 @@ setInterval(() => {
   }
 }, 8000);
 </script>
+<!-- FLOATING REFRESH BUTTON -->
+<button id="floatRefreshBtn" onclick="refreshVenues()" style="
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 500;
+  background: #0d0d0d;
+  color: #f5f0e8;
+  border: none;
+  padding: 13px 20px;
+  font-family: DM Mono, monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  transition: all 0.2s;
+  border-radius: 0;
+  text-transform: uppercase;
+">↻ Refresh</button>
 </body>
 </html>
